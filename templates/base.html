@@ -81,6 +81,11 @@
                             <i class="fa-solid fa-book-open mr-1.5 opacity-70"></i>Khóa học
                         </a>
 
+                        <a href="{% url 'check_in:check_in_page' %}" 
+                           class="px-3.5 py-2 rounded-lg text-sm font-medium {% if 'check-in' in request.path %}text-sky-700 bg-sky-50{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-100{% endif %}">
+                            <i class="fa-solid fa-location-dot mr-1.5 opacity-70"></i>Điểm danh
+                        </a>
+
                         {% if user.is_authenticated and user.is_teacher_or_admin %}
                         <a href="{% url 'courses:teacher_dashboard' %}" 
                            class="px-3.5 py-2 rounded-lg text-sm font-medium {% if 'teacher' in request.path %}text-emerald-700 bg-emerald-50 border border-emerald-200{% else %}text-emerald-600 hover:bg-emerald-50{% endif %}">

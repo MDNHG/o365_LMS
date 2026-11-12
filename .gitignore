@@ -46,3 +46,8 @@ desktop.ini
 htmlcov/
 .pytest_cache/
 
+# App media / generated evidence
+MinhChung_SuKien/
+check_in/MinhChung_SuKien/
+
+
