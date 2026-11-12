@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     # Local apps
     'apps.accounts.apps.AccountsConfig',
     'apps.courses.apps.CoursesConfig',
+    'checkin',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'

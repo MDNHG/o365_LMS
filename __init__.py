@@ -1,1 +1,0 @@
-"""Check-in application package."""
