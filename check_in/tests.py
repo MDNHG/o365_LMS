@@ -227,6 +227,52 @@ class CheckInViewTests(TestCase):
         self.assertIsNone(record.user)
         self.assertFalse(record.is_valid)
 
+    def test_export_checkin_excel(self):
+        # Create sample records
+        CheckInRecord.objects.create(
+            user=self.user,
+            user_latitude=21.0049,
+            user_longitude=105.8433,
+            target_latitude=21.0049,
+            target_longitude=105.8433,
+            distance_meters=0.0,
+            is_valid=True,
+            message="Thành công",
+        )
+        url = reverse("check_in:export_checkin_excel")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response["Content-Type"],
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        self.assertIn("danh_sach_diem_danh.xlsx", response["Content-Disposition"])
+        # Verify it is valid excel content
+        import io, openpyxl
+        wb = openpyxl.load_workbook(io.BytesIO(response.content))
+        self.assertIn("Lịch sử Điểm danh", wb.sheetnames)
+        ws = wb["Lịch sử Điểm danh"]
+        self.assertEqual(ws.cell(row=1, column=1).value, "STT")
+        self.assertEqual(ws.cell(row=2, column=3).value, self.user.username)
+
+    def test_export_checkin_csv(self):
+        CheckInRecord.objects.create(
+            user=self.user,
+            user_latitude=21.0049,
+            user_longitude=105.8433,
+            target_latitude=21.0049,
+            target_longitude=105.8433,
+            distance_meters=0.0,
+            is_valid=True,
+            message="Thành công",
+        )
+        url = reverse("check_in:export_checkin_csv")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/csv", response["Content-Type"])
+        self.assertIn("danh_sach_diem_danh.csv", response["Content-Disposition"])
+        self.assertIn(self.user.username.encode("utf-8"), response.content)
+
 
 class AdminTests(TestCase):
     def test_admin_helpers(self):

@@ -54,6 +54,20 @@
         }
         button:hover { background-color: #0369a1; }
         button:disabled { background-color: #475569; cursor: not-allowed; }
+        .btn-export {
+            display: block;
+            background-color: #059669;
+            color: white;
+            text-decoration: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 8px;
+            margin-top: 12px;
+            transition: all 0.2s;
+            box-sizing: border-box;
+        }
+        .btn-export:hover { background-color: #047857; }
         #status-box {
             margin-top: 20px;
             padding: 14px;
@@ -96,6 +110,11 @@
     </div>
     
     <button id="btn-checkin" onclick="triggerCheckIn()">📍 BẮT ĐẦU CHECK-IN</button>
+    <div style="display: flex; gap: 10px; margin-top: 12px;">
+        <a href="{% url 'check_in:export_checkin_excel' %}" class="btn-export" style="flex: 2; margin-top: 0; background-color: #059669;">📊 XUẤT FILE EXCEL (.XLSX)</a>
+        <a href="{% url 'check_in:export_checkin_csv' %}" class="btn-export" style="flex: 1; margin-top: 0; background-color: #334155; font-size: 13px;">CSV</a>
+    </div>
+
     <div id="status-box"></div>
 
     <div>

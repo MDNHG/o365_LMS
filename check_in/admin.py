@@ -41,6 +41,13 @@ class CheckInRecordAdmin(admin.ModelAdmin):
     # Số bản ghi trên mỗi trang
     list_per_page = 25
 
+    actions = ["export_to_excel"]
+
+    @admin.action(description="📊 Xuất danh sách đã chọn ra file Excel (.xlsx)")
+    def export_to_excel(self, request, queryset):
+        from .views import generate_excel_response
+        return generate_excel_response(queryset, filename="danh_sach_diem_danh_admin.xlsx")
+
     # Phân nhóm giao diện khi xem chi tiết 1 bản ghi
     fieldsets = (
         (
