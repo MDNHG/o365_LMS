@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'apps.accounts.apps.AccountsConfig',
     'apps.courses.apps.CoursesConfig',
     'check_in.apps.CheckInConfig',
+    'check_in_for_student.apps.CheckInForStudentConfig',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
