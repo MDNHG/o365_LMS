@@ -14,7 +14,7 @@ Tuy vậy trong những kì trước clb gặp các vướng mắc sau:
 *Điều này dẫn đến Clb gặp khó khăn trong việc đánh giá và cấp minh chứng.*
 
 ### Giới hạn kĩ thuật + cách khắc phục
-- Tài nguyên hạn chế, dung lượng VPS rất ít (không thể lưu trữ database của 300 học viên + các giảng viên + admin)
+- Tài nguyên hạn chế, dung lượng VPS rất ít (không thể lưu trữ database của 300 học viên + các giảng viên + admin) và khả năng chịu tải thấp (cần đáp ứng cho ít nhất 30 người check in cùng một lúc)
 
 ### Cách khắc phục: 
 - Authentication Có thể sử dụng API của Google (Sign in with Google) hoặc Firebase (phù hợp cho dưới 100 người). Hoặc là nếu dùng được đăng nhập bằng tài khoản nhà trường (chưa biết cách)
@@ -22,8 +22,6 @@ Tuy vậy trong những kì trước clb gặp các vướng mắc sau:
 - Phân quyền: .................................................................................... chắc chắn cần database
 - Các Course Material sẽ là embed từ video youtube, link google drive và MS form cho quizzi và test.
     - Triển khai: Sử dụng iframe để embed và lấy data trực tiếp từ source
-    Problem according to Claude
-    Summary
 
 ## Kế hoạch triển khai phần Core (MVP)
 - **Học viên:** Đăng nhập Google, cập nhật MSSV, xem 3 khóa học (Word, Excel, PPT), xem video bài giảng với trình player chống tua, làm bài kiểm tra Google Forms, xem tiến độ hoàn thành.
