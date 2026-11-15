@@ -41,6 +41,13 @@ class CheckInRecordAdmin(admin.ModelAdmin):
     # Số bản ghi trên mỗi trang
     list_per_page = 25
 
+    actions = ["export_to_excel"]
+
+    @admin.action(description="📊 Xuất danh sách đã chọn ra file Excel (.xlsx)")
+    def export_to_excel(self, request, queryset):
+        from .views import generate_excel_response
+        return generate_excel_response(queryset, filename="danh_sach_diem_danh_admin.xlsx")
+
     # Phân nhóm giao diện khi xem chi tiết 1 bản ghi
     fieldsets = (
         (
@@ -71,26 +78,34 @@ class CheckInRecordAdmin(admin.ModelAdmin):
     )
 
     # Hiển thị tên người dùng hoặc "Khách ẩn danh"
-    @admin.display(description="Người điểm danh")
+    @admin.display(description="Người điểm danh", ordering="user__username")
     def display_user(self, obj):
-        return obj.user.username if obj.user else "Khách ẩn danh"
+        if not obj.user:
+            return "Khách ẩn danh"
+        full_name = obj.user.get_full_name()
+        return f"{full_name} ({obj.user.username})" if full_name else obj.user.username
 
     # Hiển thị icon/màu sắc trực quan cho trạng thái
     @admin.display(description="Trạng thái", ordering="is_valid")
     def status_badge(self, obj):
         if obj.is_valid:
             return format_html(
-                '<span style="color: white; background-color: #28a745; padding: 3px 8px; border-radius: 4px; font-weight: bold;">Hợp lệ</span>'
+                '<span style="color: white; background-color: #28a745; padding: 3px 8px; border-radius: 4px; font-weight: bold;">{}</span>',
+                "Hợp lệ",
             )
         return format_html(
-            '<span style="color: white; background-color: #dc3545; padding: 3px 8px; border-radius: 4px; font-weight: bold;">Không hợp lệ</span>'
+            '<span style="color: white; background-color: #dc3545; padding: 3px 8px; border-radius: 4px; font-weight: bold;">{}</span>',
+            "Không hợp lệ",
         )
 
     # Tạo đường link xem vị trí người dùng trên Google Maps
     @admin.display(description="Bản đồ")
     def view_on_map(self, obj):
+        if obj.user_latitude is None or obj.user_longitude is None:
+            return "-"
         url = f"https://www.google.com/maps?q={obj.user_latitude:.6f},{obj.user_longitude:.6f}"
         return format_html(
-            '<a href="{}" target="_blank" style="color: #007bff; text-decoration: underline;">Xem vị trí</a>',
+            '<a href="{}" target="_blank" rel="noopener noreferrer" style="color: #007bff; text-decoration: underline;">{}</a>',
             url,
+            "Xem vị trí",
         )

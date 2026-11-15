@@ -46,4 +46,6 @@ class CheckInRecord(models.Model):
     def __str__(self):
         status = "Thành công" if self.is_valid else "Thất bại"
         user_name = self.user.username if self.user else "Ẩn danh"
-        return f"[{status}] {user_name} - {self.distance_meters:.1f}m ({self.created_at.strftime('%H:%M %d/%m/%Y')})"
+        dist = f"{self.distance_meters:.1f}m" if self.distance_meters is not None else "N/A"
+        time_str = self.created_at.strftime('%H:%M %d/%m/%Y') if self.created_at else "Chưa lưu"
+        return f"[{status}] {user_name} - {dist} ({time_str})"

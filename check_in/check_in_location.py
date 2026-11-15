@@ -11,10 +11,20 @@ class Coordinates:
     longitude: float
 
     def __post_init__(self):
-        if not (-90.0 <= self.latitude <= 90.0):
+        try:
+            lat = float(self.latitude)
+            lon = float(self.longitude)
+        except (TypeError, ValueError):
+            raise ValueError(f"Tọa độ không hợp lệ: ({self.latitude}, {self.longitude})")
+
+        if math.isnan(lat) or math.isinf(lat) or not (-90.0 <= lat <= 90.0):
             raise ValueError(f"Latitude phải nằm trong [-90, 90]. Nhận: {self.latitude}")
-        if not (-180.0 <= self.longitude <= 180.0):
+        if math.isnan(lon) or math.isinf(lon) or not (-180.0 <= lon <= 180.0):
             raise ValueError(f"Longitude phải nằm trong [-180, 180]. Nhận: {self.longitude}")
+
+        # Ensure values stored are floats
+        object.__setattr__(self, "latitude", lat)
+        object.__setattr__(self, "longitude", lon)
 
     def to_tuple(self) -> Tuple[float, float]:
         return self.latitude, self.longitude
@@ -64,6 +74,8 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
         math.sin(delta_phi / 2.0) ** 2
         + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2.0) ** 2
     )
+    # Clamp 'a' to [0.0, 1.0] to prevent math domain error due to floating point inaccuracies
+    a = min(1.0, max(0.0, a))
     c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0 - a))
     return EARTH_RADIUS_METERS * c
 
@@ -77,9 +89,12 @@ def verify_check_in(
     accuracy_meters: Optional[float] = None,
     allow_accuracy_buffer: bool = False,
 ) -> CheckInResult:
-    """Xác thực khoảng cách check-in."""
-    user_coords = Coordinates(latitude=float(user_latitude), longitude=float(user_longitude))
-    target_coords = Coordinates(latitude=float(target_latitude), longitude=float(target_longitude))
+    """Xác thực khoảng cách check-in giữa người dùng và vị trí mục tiêu."""
+    if max_radius_meters <= 0:
+        raise ValueError("Bán kính cho phép (max_radius_meters) phải lớn hơn 0.")
+
+    user_coords = Coordinates(latitude=user_latitude, longitude=user_longitude)
+    target_coords = Coordinates(latitude=target_latitude, longitude=target_longitude)
 
     raw_distance = haversine_distance(
         user_coords.latitude,
@@ -89,16 +104,27 @@ def verify_check_in(
     )
 
     effective_distance = raw_distance
-    if allow_accuracy_buffer and accuracy_meters and accuracy_meters > 0:
-        effective_distance = max(0.0, raw_distance - accuracy_meters)
+    buffer_applied = 0.0
+
+    if allow_accuracy_buffer and accuracy_meters is not None:
+        if not math.isnan(accuracy_meters) and accuracy_meters > 0:
+            # Buffer is capped to max_radius_meters to avoid bypass from extreme distances
+            buffer_applied = min(float(accuracy_meters), float(max_radius_meters))
+            effective_distance = max(0.0, raw_distance - buffer_applied)
 
     is_valid = effective_distance <= max_radius_meters
 
     if is_valid:
-        message = (
-            f"Điểm danh thành công! Bạn cách vị trí {round(raw_distance, 1)}m "
-            f"(trong bán kính cho phép {max_radius_meters}m)."
-        )
+        if raw_distance <= max_radius_meters:
+            message = (
+                f"Điểm danh thành công! Bạn cách vị trí {round(raw_distance, 1)}m "
+                f"(trong bán kính cho phép {max_radius_meters}m)."
+            )
+        else:
+            message = (
+                f"Điểm danh thành công! Bạn cách vị trí {round(raw_distance, 1)}m "
+                f"(hợp lệ nhờ bù sai số GPS ±{round(buffer_applied, 1)}m, bán kính cho phép {max_radius_meters}m)."
+            )
     else:
         overshoot = round(raw_distance - max_radius_meters, 1)
         message = (

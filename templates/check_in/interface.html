@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Điểm Danh Check-in GPS</title>
+    <title>Điểm Danh Check-in GPS - CLB o365</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -14,18 +14,31 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
         }
         .container {
             background-color: #1e293b;
             padding: 30px;
             border-radius: 14px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            max-width: 420px;
-            width: 90%;
+            max-width: 440px;
+            width: 100%;
             text-align: center;
         }
-        h2 { color: #38bdf8; margin-top: 0; }
-        p { color: #94a3b8; font-size: 14px; line-height: 1.5; }
+        h2 { color: #38bdf8; margin-top: 0; margin-bottom: 8px; font-size: 22px; }
+        .target-info {
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin: 14px 0;
+            font-size: 13px;
+            color: #94a3b8;
+            text-align: left;
+        }
+        .target-info strong { color: #e2e8f0; }
+        p { color: #94a3b8; font-size: 14px; line-height: 1.5; margin-bottom: 15px; }
         button {
             background-color: #0284c7;
             color: white;
@@ -36,35 +49,82 @@
             border-radius: 8px;
             cursor: pointer;
             width: 100%;
-            margin-top: 20px;
+            margin-top: 10px;
             transition: all 0.2s;
         }
         button:hover { background-color: #0369a1; }
         button:disabled { background-color: #475569; cursor: not-allowed; }
+        .btn-export {
+            display: block;
+            background-color: #059669;
+            color: white;
+            text-decoration: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 8px;
+            margin-top: 12px;
+            transition: all 0.2s;
+            box-sizing: border-box;
+        }
+        .btn-export:hover { background-color: #047857; }
         #status-box {
             margin-top: 20px;
-            padding: 12px;
+            padding: 14px;
             border-radius: 8px;
             display: none;
             font-size: 14px;
             text-align: left;
-            line-height: 1.5;
+            line-height: 1.6;
+            word-break: break-word;
         }
         .success { background-color: #064e3b; color: #6ee7b7; border: 1px solid #059669; }
         .error { background-color: #7f1d1d; color: #fca5a5; border: 1px solid #dc2626; }
+        .map-link {
+            display: inline-block;
+            margin-top: 8px;
+            color: #38bdf8;
+            text-decoration: underline;
+            font-size: 13px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: #94a3b8; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Điểm Danh Sự Kiện</h2>
-    <p>Nhấn nút bên dưới để hệ thống xác thực khoảng cách từ thiết bị của bạn đến vị trí mục tiêu.</p>
+    <h2>📍 Điểm Danh Sự Kiện</h2>
+    <p>Hệ thống sẽ lấy tọa độ GPS từ thiết bị của bạn để xác thực khoảng cách đến vị trí lớp học / sự kiện.</p>
+
+    <div class="target-info">
+        <div><strong>Địa điểm mốc:</strong> {{ target_location_name|default:"Đại học Bách Khoa Hà Nội" }}</div>
+        <div><strong>Bán kính cho phép:</strong> {{ max_radius_meters|default:"50" }} mét</div>
+    </div>
     
     <button id="btn-checkin" onclick="triggerCheckIn()">📍 BẮT ĐẦU CHECK-IN</button>
+    <div style="display: flex; gap: 10px; margin-top: 12px;">
+        <a href="{% url 'check_in:export_checkin_excel' %}" class="btn-export" style="flex: 2; margin-top: 0; background-color: #059669;">📊 XUẤT FILE EXCEL (.XLSX)</a>
+        <a href="{% url 'check_in:export_checkin_csv' %}" class="btn-export" style="flex: 1; margin-top: 0; background-color: #334155; font-size: 13px;">CSV</a>
+    </div>
+
     <div id="status-box"></div>
+
+    <div>
+        <a href="/" class="back-link">← Quay về Trang chủ LMS</a>
+    </div>
 </div>
 
 <script>
+const CHECK_IN_API_URL = "{% url 'check_in:check_in_api' %}";
+
 function triggerCheckIn() {
     const btn = document.getElementById("btn-checkin");
     const statusBox = document.getElementById("status-box");
@@ -75,12 +135,12 @@ function triggerCheckIn() {
     }
 
     btn.disabled = true;
-    btn.innerText = "Đang lấy tín hiệu GPS...";
+    btn.innerText = "⏳ Đang lấy tín hiệu GPS...";
     statusBox.style.display = "none";
 
     navigator.geolocation.getCurrentPosition(
         async (pos) => {
-            btn.innerText = "Đang gửi tọa độ lên máy chủ...";
+            btn.innerText = "📡 Đang gửi tọa độ lên máy chủ...";
             const payload = {
                 latitude: pos.coords.latitude,
                 longitude: pos.coords.longitude,
@@ -88,8 +148,7 @@ function triggerCheckIn() {
             };
 
             try {
-                // Gửi trực tiếp đến route API check-in
-                const response = await fetch("/check-in/api/", {
+                const response = await fetch(CHECK_IN_API_URL, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -98,10 +157,32 @@ function triggerCheckIn() {
                 });
 
                 const data = await response.json();
+                const userLoc = data.user_location || {};
+                const accuracyMeters = userLoc.accuracy_meters != null
+                    ? `±${Math.round(userLoc.accuracy_meters)}m`
+                    : (pos.coords.accuracy ? `±${Math.round(pos.coords.accuracy)}m` : "Không xác định");
+                
+                const mapsUrl = userLoc.maps_url || `https://www.google.com/maps?q=${payload.latitude},${payload.longitude}`;
+
                 if (response.ok && data.success) {
-                    showStatus(`<b>✅ ${data.message}</b><br>Khoảng cách: ${data.distance_meters}m<br>Độ chính xác GPS: ±${Math.round(data.user_location.accuracy_meters || 0)}m`, true);
+                    showStatus(
+                        `<b>✅ ${data.message}</b><br>` +
+                        `Khoảng cách: <b>${data.distance_meters}m</b><br>` +
+                        `Độ chính xác GPS: ${accuracyMeters}<br>` +
+                        (data.record_id ? `Mã bản ghi: #${data.record_id}<br>` : "") +
+                        `<a class="map-link" href="${mapsUrl}" target="_blank" rel="noopener noreferrer">🗺️ Xem vị trí của bạn trên Google Maps</a>`,
+                        true
+                    );
                 } else {
-                    showStatus(`<b>❌ ${data.message || data.error}</b><br>Khoảng cách đo được: ${data.distance_meters || 'N/A'}m`, false);
+                    const errMsg = data.message || data.error || "Điểm danh không thành công.";
+                    const distStr = data.distance_meters != null ? `${data.distance_meters}m` : "N/A";
+                    showStatus(
+                        `<b>❌ ${errMsg}</b><br>` +
+                        `Khoảng cách đo được: ${distStr}<br>` +
+                        `Độ chính xác GPS: ${accuracyMeters}<br>` +
+                        `<a class="map-link" href="${mapsUrl}" target="_blank" rel="noopener noreferrer">🗺️ Xem vị trí của bạn trên Google Maps</a>`,
+                        false
+                    );
                 }
             } catch (err) {
                 showStatus("Lỗi kết nối máy chủ: " + err.message, false);
