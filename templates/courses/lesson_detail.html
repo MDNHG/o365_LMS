@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load trackvideo_tags %}
 
 {% block title %}Bài {{ lesson.order }}: {{ lesson.title }} - {{ course.title }}{% endblock %}
 
@@ -17,6 +18,10 @@
     <div class="lg:col-span-8 space-y-6">
         
         <!-- EMBED VIEWER CONTAINER -->
+         {% if lesson.lesson_type == 'video' and lesson.provider == 'youtube' and lesson.embed_url %}
+    <!-- YOUTUBE: dùng trình phát có theo dõi tiến độ -->
+    {% video_tracker lesson %}
+        {% else %}
         <div class="bg-black rounded-3xl overflow-hidden shadow-lg border border-slate-800">
             {% if lesson.embed_url %}
                 {% if lesson.provider == 'youtube' %}
@@ -53,6 +58,7 @@
                 </div>
             {% endif %}
         </div>
+        {% endif %}
 
         <!-- FALLBACK BUTTON FOR DRIVE (If 3rd party cookies blocked) -->
         {% if lesson.provider in 'gdrive,gslides,gdocs' and lesson.raw_url %}

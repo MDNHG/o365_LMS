@@ -110,6 +110,39 @@ class Lesson(models.Model):
         verbose_name="Ngưỡng đạt (% xem)",
         help_text="Giảng viên quy định % tối thiểu để tính là hoàn thành bài"
     )
+    SEEK_POLICY_CHOICES = (
+        ('backward_only', 'Chỉ cho tua lùi (Mặc định: không cho tua vượt phần chưa xem)'),
+        ('none', 'Cấm tuyệt đối mọi thao tác tua (Bắt buộc xem tuần tự liên tục)'),
+        ('free', 'Cho phép tua tự do (Dành cho bài ôn tập/tham khảo)'),
+    )
+
+    SPEED_CHOICES = (
+        (1.0, '1.0x (Tốc độ gốc)'),
+        (1.25, 'Tối đa 1.25x'),
+        (1.5, 'Tối đa 1.5x'),
+        (2.0, 'Tối đa 2.0x (Mặc định)'),
+    )
+
+    allow_seek_policy = models.CharField(
+        max_length=20,
+        choices=SEEK_POLICY_CHOICES,
+        default='backward_only',
+        blank=True,
+        verbose_name="Quy định tua video",
+        help_text="Quy định quyền tua video của học viên"
+    )
+    allow_speed_change = models.BooleanField(
+        default=True,
+        blank=True,
+        verbose_name="Cho phép đổi tốc độ phát",
+        help_text="Nếu tắt, học viên chỉ được xem ở tốc độ chuẩn 1.0x"
+    )
+    max_playback_rate = models.FloatField(
+        default=2.0,
+        choices=SPEED_CHOICES,
+        blank=True,
+        verbose_name="Tốc độ phát tối đa cho phép"
+    )
     is_published = models.BooleanField(default=True, verbose_name="Đã xuất bản (Công khai)")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

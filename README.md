@@ -105,5 +105,3 @@ python manage.py runserver 0.0.0.0:8000
   - Đặt `DJANGO_DEBUG=False` trong `.env`.
   - Thiết lập một chuỗi ngẫu nhiên dài cho `DJANGO_SECRET_KEY`.
   - Cấu hình chính xác tên miền vào `DJANGO_ALLOWED_HOSTS`.
-
-pa is here

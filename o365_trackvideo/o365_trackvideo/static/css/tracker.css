@@ -1,0 +1,35 @@
+.lms-tracker { --lms-accent: #1b6ef3; --lms-ok: #1a7f4b; --lms-line: #d8dde6;
+  position: relative; width: 100%; }
+.lms-tracker__frame { position: relative; width: 100%; padding-top: 56.25%;
+  background: #000; border-radius: 24px; overflow: hidden; }
+.lms-tracker__frame iframe, .lms-tracker__frame #lms-yt-player {
+  position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+.lms-progress { margin-top: .75rem; }
+.lms-progress__track { height: 8px; background: var(--lms-line); border-radius: 999px; overflow: hidden; }
+.lms-progress__bar { height: 100%; width: 0; background: var(--lms-accent);
+  border-radius: 999px; transition: width .4s ease; }
+.lms-progress__meta { display: flex; justify-content: space-between; align-items: center;
+  margin-top: .4rem; font-size: .9rem; }
+.lms-badge { padding: .1rem .6rem; border-radius: 999px; background: var(--lms-ok);
+  color: #fff; font-size: .8rem; }
+.lms-badge[hidden], .lms-toast[hidden], .lms-modal[hidden], .lms-notice[hidden] { display: none; }
+
+.lms-notice { margin-top: .75rem; padding: .6rem .8rem; border-radius: 6px;
+  background: #eef3fb; color: #25364f; font-size: .9rem; }
+.lms-notice--error { background: #fdecea; color: #8a1f17; }
+
+.lms-toast { position: absolute; left: 50%; bottom: 4.5rem; transform: translateX(-50%);
+  max-width: 90%; padding: .6rem 1rem; border-radius: 6px; background: #1f2937;
+  color: #fff; font-size: .9rem; text-align: center; z-index: 5; }
+
+.lms-modal { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center;
+  justify-content: center; background: rgba(15, 23, 42, .65); padding: 1rem; }
+.lms-modal__box { width: 100%; max-width: 420px; padding: 1.5rem; border-radius: 10px;
+  background: #fff; color: #111827; box-shadow: 0 10px 40px rgba(0, 0, 0, .3); }
+.lms-modal__box h3 { margin: 0 0 .5rem; font-size: 1.25rem; }
+.lms-modal__box p { margin: 0 0 1rem; line-height: 1.5; }
+.lms-btn { width: 100%; padding: .7rem 1rem; border: 0; border-radius: 6px; cursor: pointer;
+  background: var(--lms-accent, #1b6ef3); color: #fff; font-size: 1rem; }
+.lms-btn:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .lms-progress__bar { transition: none; } }

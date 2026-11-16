@@ -28,7 +28,9 @@ class LessonForm(forms.ModelForm):
         model = Lesson
         fields = [
             'title', 'order', 'lesson_type', 'raw_url',
-            'content_text', 'duration_seconds', 'min_watch_percent', 'is_published'
+            'content_text', 'duration_seconds', 'min_watch_percent',
+            'allow_seek_policy', 'allow_speed_change', 'max_playback_rate',
+            'is_published'
         ]
         widgets = {
             'title': forms.TextInput(attrs={
@@ -62,13 +64,38 @@ class LessonForm(forms.ModelForm):
                 'min': 0,
                 'max': 100
             }),
+            'allow_seek_policy': forms.Select(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white'
+            }),
+            'allow_speed_change': forms.CheckboxInput(attrs={
+                'class': 'h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
+            }),
+            'max_playback_rate': forms.Select(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white'
+            }),
             'is_published': forms.CheckboxInput(attrs={
                 'class': 'h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
             }),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'allow_seek_policy' in self.fields:
+            self.fields['allow_seek_policy'].required = False
+        if 'allow_speed_change' in self.fields:
+            self.fields['allow_speed_change'].required = False
+        if 'max_playback_rate' in self.fields:
+            self.fields['max_playback_rate'].required = False
+
     def clean(self):
         cleaned_data = super().clean()
+        if not cleaned_data.get('allow_seek_policy'):
+            cleaned_data['allow_seek_policy'] = 'backward_only'
+        if cleaned_data.get('allow_speed_change') is None:
+            cleaned_data['allow_speed_change'] = True
+        if cleaned_data.get('max_playback_rate') is None:
+            cleaned_data['max_playback_rate'] = 2.0
+
         lesson_type = cleaned_data.get('lesson_type')
         raw_url = cleaned_data.get('raw_url', '')
 

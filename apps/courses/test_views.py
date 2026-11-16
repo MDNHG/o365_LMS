@@ -115,5 +115,6 @@ class TeacherCourseSetupTestCase(TestCase):
         detail_url = reverse('courses:lesson_detail', kwargs={'course_code': 'WORD', 'order': 1})
         response = self.client.get(detail_url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'iframe')
-        self.assertContains(response, 'https://www.youtube.com/embed/dQw4w9WgXcQ')
+        # With trackvideo enabled, YouTube lessons use the tracker player
+        self.assertContains(response, 'lms-video-tracker')
+        self.assertContains(response, 'dQw4w9WgXcQ')

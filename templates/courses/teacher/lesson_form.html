@@ -85,21 +85,52 @@
                 </div>
             </div>
 
-            <!-- Video settings (Duration & min_watch_percent) -->
-            <div id="video-settings-group" class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">
-                        <i class="fa-regular fa-clock mr-1 text-slate-500"></i>Thời lượng video (giây)
-                    </label>
-                    {{ form.duration_seconds }}
-                    <span class="text-[11px] text-slate-400 mt-1 block">Ví dụ: 300 (tương đương 5 phút)</span>
+            <!-- Video settings (Duration, min_watch_percent & Anti-cheat policies) -->
+            <div id="video-settings-group" class="bg-slate-50 p-4 sm:p-5 rounded-xl border border-slate-200 space-y-4">
+                <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
+                    <i class="fa-solid fa-sliders text-blue-600"></i>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Quy định xem video & Chống gian lận</h3>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">
-                        <i class="fa-solid fa-percent mr-1 text-slate-500"></i>Ngưỡng đạt (% xem bài)
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">
+                            <i class="fa-regular fa-clock mr-1 text-slate-500"></i>Thời lượng video (giây)
+                        </label>
+                        {{ form.duration_seconds }}
+                        <span class="text-[11px] text-slate-400 mt-1 block">Ví dụ: 300 (tương đương 5 phút). Tự cập nhật khi xem thử.</span>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">
+                            <i class="fa-solid fa-percent mr-1 text-slate-500"></i>Ngưỡng đạt (% xem bài)
+                        </label>
+                        {{ form.min_watch_percent }}
+                        <span class="text-[11px] text-slate-400 mt-1 block">Mặc định: 80% (Học viên cần xem >= 80% để tính hoàn thành)</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">
+                            <i class="fa-solid fa-forward-fast mr-1 text-slate-500"></i>Quy định tua video
+                        </label>
+                        {{ form.allow_seek_policy }}
+                        <span class="text-[11px] text-slate-400 mt-1 block">Khuyên dùng: Chỉ cho tua lùi (học viên không tua vượt bài mới)</span>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">
+                            <i class="fa-solid fa-gauge-high mr-1 text-slate-500"></i>Tốc độ phát tối đa
+                        </label>
+                        {{ form.max_playback_rate }}
+                        <span class="text-[11px] text-slate-400 mt-1 block">Giới hạn tốc độ phát trên YouTube (ví dụ 1.0x hoặc 1.25x)</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2 pt-1">
+                    {{ form.allow_speed_change }}
+                    <label for="id_allow_speed_change" class="text-xs font-medium text-slate-700 cursor-pointer">
+                        Cho phép học viên tự điều chỉnh tốc độ phát (nếu tắt, video cố định 1.0x)
                     </label>
-                    {{ form.min_watch_percent }}
-                    <span class="text-[11px] text-slate-400 mt-1 block">Mặc định: 80% (Học viên cần xem >= 80% để tính hoàn thành)</span>
                 </div>
             </div>
 

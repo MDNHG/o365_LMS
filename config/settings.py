@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     # Local apps
     'apps.accounts.apps.AccountsConfig',
     'apps.courses.apps.CoursesConfig',
+    'apps.trackvideo.apps.TrackVideoConfig',
     'check_in.apps.CheckInConfig',
 ]
 
