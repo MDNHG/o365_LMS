@@ -4,8 +4,14 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('apps.accounts.urls')),
-    path('check-in/', include('check_in.urls')),
+    
+    # Phân hệ Điểm danh: Sinh viên dùng /check-in/, Giảng viên quản lý tại /check-in/manage/
+    path('check-in/manage/', include('check_in.urls')),
+    path('check-in/', include('check_in_for_student.urls')),
+    
+    # Phân hệ Theo dõi tiến độ video (có cả Dashboard & API)
     path('trackvideo/', include('apps.trackvideo.urls')),
-    path('check-in-student/', include('check_in_for_student.urls')),
+    
+    # Phân hệ Khóa học & Trang chủ
     path('', include('apps.courses.urls')),
 ]
