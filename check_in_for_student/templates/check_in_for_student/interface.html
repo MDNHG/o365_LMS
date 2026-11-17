@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Điểm Danh Sinh Viên - CLB o365</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: #1e293b;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55);
+            max-width: 460px;
+            width: 100%;
+            text-align: center;
+        }
+        .badge-student {
+            display: inline-block;
+            background-color: #0284c7;
+            color: #e0f2fe;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+        h2 {
+            color: #38bdf8;
+            margin-top: 0;
+            margin-bottom: 6px;
+            font-size: 22px;
+            font-weight: 700;
+        }
+        .subtitle {
+            color: #94a3b8;
+            font-size: 13.5px;
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+        .info-card {
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin: 12px 0;
+            font-size: 13px;
+            color: #94a3b8;
+            text-align: left;
+        }
+        .info-card strong {
+            color: #e2e8f0;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+        .input-group {
+            margin: 12px 0;
+            text-align: left;
+        }
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #f8fafc;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-group input:focus {
+            border-color: #38bdf8;
+        }
+        button.btn-checkin {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            font-size: 15px;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 14px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+        }
+        button.btn-checkin:hover {
+            background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+            transform: translateY(-1px);
+        }
+        button.btn-checkin:disabled {
+            background: #475569;
+            box-shadow: none;
+            transform: none;
+            cursor: not-allowed;
+        }
+        #status-box {
+            margin-top: 18px;
+            padding: 14px 16px;
+            border-radius: 10px;
+            display: none;
+            font-size: 13.5px;
+            text-align: left;
+            line-height: 1.6;
+            word-break: break-word;
+        }
+        .success {
+            background-color: #064e3b;
+            color: #6ee7b7;
+            border: 1px solid #059669;
+        }
+        .error {
+            background-color: #7f1d1d;
+            color: #fca5a5;
+            border: 1px solid #dc2626;
+        }
+        .map-link {
+            display: inline-block;
+            margin-top: 8px;
+            color: #38bdf8;
+            text-decoration: underline;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .privacy-notice {
+            background-color: #172554;
+            border: 1px solid #1e3a8a;
+            color: #93c5fd;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-top: 16px;
+            font-size: 11.5px;
+            text-align: left;
+            line-height: 1.45;
+        }
+        .privacy-notice strong {
+            color: #bfdbfe;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.2s;
+        }
+        .back-link:hover {
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="badge-student">🎓 CỔNG ĐIỂM DANH SINH VIÊN</div>
+    <h2>Xác Nhận Có Mặt</h2>
+    <p class="subtitle">Hệ thống sử dụng định vị GPS từ điện thoại/máy tính của bạn để xác thực có mặt tại phòng học.</p>
+
+    <!-- Thông tin học viên -->
+    <div class="info-card">
+        {% if student_info.is_authenticated %}
+            <div class="info-row">
+                <span>Họ và tên:</span>
+                <strong>{{ student_info.full_name|default:student_info.username }}</strong>
+            </div>
+            {% if student_info.student_id %}
+            <div class="info-row">
+                <span>MSSV:</span>
+                <strong>{{ student_info.student_id }}</strong>
+            </div>
+            {% endif %}
+            {% if student_info.class_name %}
+            <div class="info-row">
+                <span>Lớp sinh hoạt:</span>
+                <strong>{{ student_info.class_name }}</strong>
+            </div>
+            {% endif %}
+            <div class="info-row">
+                <span>Trạng thái:</span>
+                <span style="color: #22c55e; font-weight: 600;">● Đã đăng nhập LMS</span>
+            </div>
+        {% else %}
+            <div style="margin-bottom: 8px; color: #cbd5e1; font-weight: 600;">
+                Nhập thông tin sinh viên điểm danh:
+            </div>
+            <div class="input-group" style="margin-top: 6px;">
+                <label for="input-mssv">Mã số sinh viên (MSSV):</label>
+                <input type="text" id="input-mssv" placeholder="VD: 20210001" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label for="input-name">Họ và tên sinh viên:</label>
+                <input type="text" id="input-name" placeholder="VD: Nguyễn Văn A" autocomplete="off">
+            </div>
+            <div style="font-size: 11.5px; color: #94a3b8; margin-top: 6px;">
+                💡 <a href="/accounts/login/?next={{ request.path }}" style="color: #38bdf8; text-decoration: underline;">Đăng nhập tài khoản</a> để tự động ghi nhận vào hồ sơ học viên.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Thông tin địa điểm mốc -->
+    <div class="info-card">
+        <div class="info-row">
+            <span>Địa điểm học:</span>
+            <strong>{{ target_location_name|default:"Đại học Bách Khoa Hà Nội" }}</strong>
+        </div>
+        <div class="info-row">
+            <span>Bán kính hợp lệ:</span>
+            <strong>{{ max_radius_meters|default:"50" }} mét</strong>
+        </div>
+    </div>
+
+    <!-- Nút thực hiện điểm danh -->
+    <button id="btn-checkin" class="btn-checkin" onclick="triggerStudentCheckIn()">📍 BẮT ĐẦU ĐIỂM DANH GPS</button>
+
+    <!-- Khung thông báo kết quả -->
+    <div id="status-box"></div>
+
+    <!-- Thông báo bảo mật cơ sở dữ liệu -->
+    <div class="privacy-notice">
+        🛡️ <strong>Chính sách bảo mật:</strong> Dữ liệu điểm danh được mã hóa và gửi trực tiếp về máy chủ để Giảng viên tổng hợp. Để bảo vệ dữ liệu cá nhân, sinh viên không thể tải về hoặc trích xuất cơ sở dữ liệu điểm danh (Excel/CSV).
+    </div>
+
+    <div>
+        <a href="/" class="back-link">← Quay về Trang chủ LMS</a>
+    </div>
+</div>
+
+<script>
+const STUDENT_API_URL = "{% url 'check_in_for_student:student_check_in_api' %}";
+
+function triggerStudentCheckIn() {
+    const btn = document.getElementById("btn-checkin");
+    const statusBox = document.getElementById("status-box");
+
+    // Lấy thông tin nhập nếu chưa đăng nhập
+    const mssvInput = document.getElementById("input-mssv");
+    const nameInput = document.getElementById("input-name");
+    const studentId = mssvInput ? mssvInput.value.trim() : "";
+    const studentName = nameInput ? nameInput.value.trim() : "";
+
+    if (mssvInput && !studentId) {
+        showStatus("Vui lòng nhập Mã số sinh viên (MSSV) trước khi điểm danh.", false);
+        mssvInput.focus();
+        return;
+    }
+
+    if (!navigator.geolocation) {
+        showStatus("Trình duyệt không hỗ trợ Geolocation (định vị GPS). Vui lòng thử trên trình duyệt di động như Chrome hoặc Safari.", false);
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "⏳ Đang lấy tọa độ GPS...";
+    statusBox.style.display = "none";
+
+    navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+            btn.innerText = "📡 Đang gửi dữ liệu lên máy chủ...";
+            const payload = {
+                latitude: pos.coords.latitude,
+                longitude: pos.coords.longitude,
+                accuracy: pos.coords.accuracy,
+                student_id: studentId,
+                student_name: studentName
+            };
+
+            try {
+                const response = await fetch(STUDENT_API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                const userLoc = data.user_location || {};
+                const accuracyMeters = userLoc.accuracy_meters != null
+                    ? `±${Math.round(userLoc.accuracy_meters)}m`
+                    : (pos.coords.accuracy ? `±${Math.round(pos.coords.accuracy)}m` : "Không xác định");
+
+                const mapsUrl = userLoc.maps_url || `https://www.google.com/maps?q=${payload.latitude},${payload.longitude}`;
+
+                if (response.ok && data.success) {
+                    showStatus(
+                        `<b>✅ ${data.message}</b><br>` +
+                        `Khoảng cách: <b>${data.distance_meters}m</b><br>` +
+                        `Độ chính xác GPS: ${accuracyMeters}<br>` +
+                        (data.record_id ? `Mã bản ghi: #${data.record_id}<br>` : "") +
+                        `<a class="map-link" href="${mapsUrl}" target="_blank" rel="noopener noreferrer">🗺️ Xem vị trí của bạn trên bản đồ</a>`,
+                        true
+                    );
+                } else {
+                    const errMsg = data.message || data.error || "Điểm danh không thành công.";
+                    const distStr = data.distance_meters != null ? `${data.distance_meters}m` : "N/A";
+                    showStatus(
+                        `<b>❌ ${errMsg}</b><br>` +
+                        `Khoảng cách đo được: ${distStr}<br>` +
+                        `Độ chính xác GPS: ${accuracyMeters}<br>` +
+                        `<a class="map-link" href="${mapsUrl}" target="_blank" rel="noopener noreferrer">🗺️ Xem vị trí của bạn trên bản đồ</a>`,
+                        false
+                    );
+                }
+            } catch (err) {
+                showStatus("Lỗi kết nối máy chủ: " + err.message, false);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "📍 BẮT ĐẦU ĐIỂM DANH GPS";
+            }
+        },
+        (err) => {
+            btn.disabled = false;
+            btn.innerText = "📍 BẮT ĐẦU ĐIỂM DANH GPS";
+            let msg = "Lỗi GPS: ";
+            if (err.code === 1) {
+                msg += "Bạn đã từ chối cấp quyền truy cập vị trí trên trình duyệt. Vui lòng bật định vị GPS để điểm danh.";
+            } else if (err.code === 2) {
+                msg += "Không nhận được tín hiệu GPS từ thiết bị.";
+            } else {
+                msg += "Hết thời gian chờ phản hồi GPS.";
+            }
+            showStatus(msg, false);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+}
+
+function showStatus(html, isSuccess) {
+    const box = document.getElementById("status-box");
+    box.style.display = "block";
+    box.className = isSuccess ? "success" : "error";
+    box.innerHTML = html;
+}
+</script>
+
+</body>
+</html>
