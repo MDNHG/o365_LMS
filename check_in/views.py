@@ -120,10 +120,15 @@ def check_in_api_view(request: HttpRequest) -> JsonResponse:
 def generate_excel_response(records, filename: str = "danh_sach_diem_danh.xlsx") -> HttpResponse:
     """
     Tạo file Excel (.xlsx) định dạng chuẩn, có tiêu đề tô màu, border, tự co giãn cột.
+    Tự động fallback về file CSV (UTF-8 BOM) nếu môi trường thiếu thư viện openpyxl.
     """
-    import openpyxl
-    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-    from openpyxl.utils import get_column_letter
+    try:
+        import openpyxl
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+        from openpyxl.utils import get_column_letter
+    except ImportError:
+        logger.warning("openpyxl is not installed. Falling back to CSV export.")
+        return export_checkin_csv(HttpRequest())
 
     wb = openpyxl.Workbook()
     ws = wb.active

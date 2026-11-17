@@ -4,13 +4,10 @@ from . import views
 app_name = 'courses'
 
 urlpatterns = [
-    # Giao diện học viên & chung
+    # Giao diện trang chủ khóa học
     path('', views.course_list, name='course_list'),
-    path('<str:course_code>/', views.course_detail, name='course_detail'),
-    path('<str:course_code>/enroll/', views.enroll_course, name='enroll_course'),
-    path('<str:course_code>/lesson/<int:order>/', views.lesson_detail, name='lesson_detail'),
 
-    # Giao diện Giảng viên (Teacher setup)
+    # Khu vực Giảng viên (Đặt trước route động để tránh xung đột)
     path('teacher/dashboard/', views.teacher_dashboard, name='teacher_dashboard'),
     path('teacher/<str:course_code>/lessons/', views.teacher_lesson_list, name='teacher_lesson_list'),
     path('teacher/<str:course_code>/lessons/create/', views.teacher_lesson_create, name='teacher_lesson_create'),
@@ -19,5 +16,9 @@ urlpatterns = [
 
     # API hỗ trợ Live Preview
     path('api/parse-embed/', views.api_parse_embed_preview, name='api_parse_embed'),
-]
 
+    # Giao diện học viên & Chi tiết khóa học
+    path('<str:course_code>/', views.course_detail, name='course_detail'),
+    path('<str:course_code>/enroll/', views.enroll_course, name='enroll_course'),
+    path('<str:course_code>/lesson/<int:order>/', views.lesson_detail, name='lesson_detail'),
+]

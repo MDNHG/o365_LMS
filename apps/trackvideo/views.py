@@ -1,5 +1,6 @@
 import json
 
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
@@ -7,6 +8,7 @@ from apps.courses.models import Enrollment, Lesson
 
 from . import services
 from .utils import can_manage_lesson
+from .models import LessonProgress
 
 MAX_VIDEO_SECONDS = 4 * 60 * 60
 
@@ -170,3 +172,51 @@ def log_event(request):
         'suspicious_seeks': progress.suspicious_seeks_count,
         'assessment': progress.assessment_summary,
     })
+
+
+def video_dashboard(request):
+    """
+    Trang tổng quan theo dõi tiến độ xem video:
+    - Nếu là Giảng viên / Admin: Thống kê tiến độ video của toàn bộ sinh viên.
+    - Nếu là Học viên: Xem các bài video mình đang học và % tiến độ đã hoàn thành.
+    """
+    if not request.user.is_authenticated:
+        return redirect('accounts:login')
+
+    user = request.user
+    is_teacher_or_admin = getattr(user, 'is_teacher_or_admin', False) or user.is_staff or getattr(user, 'role', '') in ('teacher', 'admin')
+
+    video_lessons = Lesson.objects.filter(lesson_type='video', is_published=True).select_related('course').order_by('course__code', 'order')
+
+    if is_teacher_or_admin:
+        progress_records = LessonProgress.objects.select_related('user', 'lesson', 'lesson__course').order_by('-last_accessed_at')[:50]
+        total_students_tracked = LessonProgress.objects.values('user').distinct().count()
+        total_completed = LessonProgress.objects.filter(is_completed=True).count()
+        context = {
+            'is_teacher': True,
+            'video_lessons': video_lessons,
+            'progress_records': progress_records,
+            'total_students_tracked': total_students_tracked,
+            'total_completed': total_completed,
+        }
+    else:
+        user_progresses = {
+            p.lesson_id: p
+            for p in LessonProgress.objects.filter(user=user)
+        }
+        lessons_data = []
+        for l in video_lessons:
+            p = user_progresses.get(l.id)
+            lessons_data.append({
+                'lesson': l,
+                'progress': p,
+                'percent': p.completion_percentage if p else 0.0,
+                'is_completed': p.is_completed if p else False,
+            })
+        context = {
+            'is_teacher': False,
+            'lessons_data': lessons_data,
+        }
+
+    return render(request, 'trackvideo/dashboard.html', context)
+

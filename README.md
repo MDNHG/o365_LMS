@@ -77,8 +77,11 @@ python manage.py runserver 0.0.0.0:8000
 ```
 
 #### 🌐 Các địa chỉ truy cập trên trình duyệt:
-- **Hệ thống LMS chính (Trang khóa học & bài giảng):** [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
-- **Cổng Điểm danh Check-in GPS:** [http://127.0.0.1:8000/check-in/](http://127.0.0.1:8000/check-in/)
+- **Hệ thống LMS chính (Trang chủ & Danh sách khóa học):** [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
+- **Cổng Điểm danh Sinh viên (GPS Check-in):** [http://127.0.0.1:8000/check-in/](http://127.0.0.1:8000/check-in/)
+- **Quản lý Điểm danh & Xuất file Excel/CSV (Giảng viên):** [http://127.0.0.1:8000/check-in/manage/](http://127.0.0.1:8000/check-in/manage/)
+- **Bảng Theo dõi Tiến độ Video (Video Dashboard):** [http://127.0.0.1:8000/trackvideo/](http://127.0.0.1:8000/trackvideo/)
+- **Khu vực Thiết lập Bài giảng (Giảng viên):** [http://127.0.0.1:8000/teacher/dashboard/](http://127.0.0.1:8000/teacher/dashboard/)
 - **Trang Quản trị Django Admin:** [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/)
 
 *(Lưu ý: Khi kiểm thử tính năng định vị GPS trên điện thoại kết nối cùng mạng Wi-Fi/LAN, thay `127.0.0.1` bằng địa chỉ IP máy tính của bạn, ví dụ: `http://192.168.1.x:8000/check-in/`)*
