@@ -1,0 +1,81 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/tracker.css' %}">
+{% if not cfg.video_id %}
+  <div class="lms-notice lms-notice--error" role="alert">
+    Không đọc được mã video YouTube của bài học này. Hãy báo giảng viên kiểm tra lại liên kết.
+  </div>
+{% else %}
+<div id="lms-video-tracker" class="lms-tracker"
+     data-lesson-id="{{ cfg.lesson_id }}"
+     data-video-id="{{ cfg.video_id }}"
+     data-mode="{{ cfg.mode }}"
+     data-can-sync="{{ cfg.can_sync }}"
+     data-duration="{{ cfg.duration }}"
+     data-threshold="{{ cfg.threshold }}"
+     data-furthest="{{ cfg.furthest }}"
+     data-percent="{{ cfg.percent }}"
+     data-completed="{{ cfg.completed }}"
+     data-heartbeat-url="{{ cfg.heartbeat_url }}"
+     data-sync-url="{{ cfg.sync_url }}"
+     data-event-url="{{ cfg.event_url }}"
+     data-csrf="{{ cfg.csrf }}"
+     data-heartbeat-seconds="{{ cfg.heartbeat_seconds }}"
+     data-seek-tolerance="{{ cfg.seek_tolerance }}"
+     data-idle-minutes="{{ cfg.idle_minutes }}"
+     data-countdown-seconds="{{ cfg.countdown_seconds }}"
+     data-seek-policy="{{ cfg.seek_policy }}"
+     data-allow-speed="{{ cfg.allow_speed }}"
+     data-max-speed="{{ cfg.max_speed }}">
+
+  <div class="lms-tracker__frame">
+    <div id="lms-yt-player"></div>
+  </div>
+
+  <div id="lms-error" class="lms-notice lms-notice--error" role="alert" hidden></div>
+
+  {% if is_student %}
+    <div class="lms-progress">
+      <div class="lms-progress__track" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+           aria-valuenow="0" aria-label="Tiến độ xem video" id="lms-progress-track">
+        <div id="lms-progress-bar" class="lms-progress__bar"></div>
+      </div>
+      <div class="lms-progress__meta">
+        <span id="lms-progress-text">Đã xem 0%</span>
+        <div class="flex items-center gap-2">
+          <span id="lms-assessment-badge" class="lms-badge" style="background:#f1f5f9; color:#475569; font-size:11px;">
+            {% if cfg.seek_policy == 'none' %}
+              <i class="fa-solid fa-lock text-xs mr-1"></i>Cấm tua
+            {% elif cfg.seek_policy == 'backward_only' %}
+              <i class="fa-solid fa-backward-step text-xs mr-1"></i>Chỉ tua lùi
+            {% else %}
+              <i class="fa-solid fa-forward text-xs mr-1"></i>Tua tự do
+            {% endif %}
+            &middot; Tốc độ: {{ cfg.max_speed }}x
+          </span>
+          <span id="lms-completed-badge" class="lms-badge" hidden>Đã hoàn thành</span>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="lms-notice">
+      Chế độ xem thử: tiến độ không được ghi nhận.
+      {% if cfg.can_sync == '1' %}Thời lượng video sẽ tự đồng bộ với thời lượng thật.{% endif %}
+    </div>
+  {% endif %}
+
+  <div id="lms-toast" class="lms-toast" role="status" aria-live="polite" hidden></div>
+
+  <div id="lms-idle-modal" class="lms-modal" role="dialog" aria-modal="true"
+       aria-labelledby="lms-idle-title" hidden>
+    <div class="lms-modal__box">
+      <h3 id="lms-idle-title">Bạn có còn đang xem không?</h3>
+      <p id="lms-idle-text">
+        Video đã được tạm dừng. Nếu không phản hồi, hệ thống sẽ ngừng ghi nhận tiến độ sau
+        <strong id="lms-idle-count">60</strong> giây.
+      </p>
+      <button type="button" id="lms-idle-continue" class="lms-btn">Tôi vẫn đang xem</button>
+    </div>
+  </div>
+</div>
+<script src="{% static 'js/tracker.js' %}" defer></script>
+{% endif %}
