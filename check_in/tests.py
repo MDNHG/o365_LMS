@@ -253,7 +253,108 @@ class CheckInViewTests(TestCase):
         self.assertIn("Lịch sử Điểm danh", wb.sheetnames)
         ws = wb["Lịch sử Điểm danh"]
         self.assertEqual(ws.cell(row=1, column=1).value, "STT")
+        self.assertEqual(ws.cell(row=1, column=12).value, "Ảnh người điểm danh")
         self.assertEqual(ws.cell(row=2, column=3).value, self.user.username)
+
+    def test_export_checkin_excel_with_embedded_photo(self):
+        import io
+        from PIL import Image as PILImage
+        from django.core.files.base import ContentFile
+        import openpyxl
+
+        # Tạo một ảnh hợp lệ trong bộ nhớ
+        img_io = io.BytesIO()
+        pil_im = PILImage.new("RGB", (120, 90), color=(50, 150, 250))
+        pil_im.save(img_io, format="JPEG")
+        img_content = ContentFile(img_io.getvalue(), name="test_camera.jpg")
+
+        record = CheckInRecord.objects.create(
+            user=self.user,
+            user_latitude=21.0049,
+            user_longitude=105.8433,
+            target_latitude=21.0049,
+            target_longitude=105.8433,
+            distance_meters=0.0,
+            is_valid=True,
+            photo=img_content,
+            message="Điểm danh kèm ảnh",
+        )
+
+        url = reverse("check_in:export_checkin_excel")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        wb = openpyxl.load_workbook(io.BytesIO(response.content))
+        ws = wb["Lịch sử Điểm danh"]
+        # Xác nhận có ảnh nhúng vào sheet
+        self.assertGreaterEqual(len(ws._images), 1)
+        # Xác nhận chiều cao hàng được tự động phóng to để chứa ảnh
+        self.assertGreaterEqual(ws.row_dimensions[2].height, 50)
+
+    def test_clear_checkin_history_api_unauthorized(self):
+        url = reverse("check_in:clear_checkin_history_api")
+        # Chưa đăng nhập hoặc không phải admin/giảng viên sẽ bị từ chối 403
+        response = self.client.post(url, data=json.dumps({}), content_type="application/json")
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(response.json()["success"])
+
+    def test_clear_checkin_history_api_all(self):
+        # Đăng nhập với quyền staff / giảng viên
+        self.user.is_staff = True
+        self.user.save()
+        self.client.force_login(self.user)
+
+        # Tạo 3 bản ghi
+        for i in range(3):
+            CheckInRecord.objects.create(
+                user=self.user,
+                user_latitude=21.0049,
+                user_longitude=105.8433,
+                target_latitude=21.0049,
+                target_longitude=105.8433,
+                distance_meters=0.0,
+                is_valid=True,
+                message=f"Bản ghi {i}",
+            )
+        self.assertEqual(CheckInRecord.objects.count(), 3)
+
+        url = reverse("check_in:clear_checkin_history_api")
+        response = self.client.post(url, data=json.dumps({}), content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertEqual(data["deleted_count"], 3)
+        self.assertEqual(CheckInRecord.objects.count(), 0)
+
+    def test_clear_checkin_history_api_specific_ids(self):
+        self.user.is_staff = True
+        self.user.save()
+        self.client.force_login(self.user)
+
+        r1 = CheckInRecord.objects.create(
+            user=self.user,
+            user_latitude=21.0, user_longitude=105.0,
+            target_latitude=21.0, target_longitude=105.0,
+            distance_meters=0.0, is_valid=True, message="R1",
+        )
+        r2 = CheckInRecord.objects.create(
+            user=self.user,
+            user_latitude=21.0, user_longitude=105.0,
+            target_latitude=21.0, target_longitude=105.0,
+            distance_meters=0.0, is_valid=True, message="R2",
+        )
+        url = reverse("check_in:clear_checkin_history_api")
+        response = self.client.post(
+            url,
+            data=json.dumps({"record_ids": [r1.id]}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertEqual(data["deleted_count"], 1)
+        self.assertFalse(CheckInRecord.objects.filter(id=r1.id).exists())
+        self.assertTrue(CheckInRecord.objects.filter(id=r2.id).exists())
 
     def test_export_checkin_csv(self):
         CheckInRecord.objects.create(
@@ -297,3 +398,22 @@ class AdminTests(TestCase):
         self.assertIn("google.com/maps", str(admin_instance.view_on_map(rec_user)))
         rec_empty_coords = CheckInRecord(user_latitude=None, user_longitude=None)
         self.assertEqual(admin_instance.view_on_map(rec_empty_coords), "-")
+
+    def test_admin_delete_selected_records(self):
+        from django.test import RequestFactory
+        from django.contrib.messages.storage.fallback import FallbackStorage
+
+        admin_instance = CheckInRecordAdmin(CheckInRecord, AdminSite())
+        r1 = CheckInRecord.objects.create(
+            user=None, user_latitude=21.0, user_longitude=105.0,
+            target_latitude=21.0, target_longitude=105.0,
+            distance_meters=0.0, is_valid=True,
+        )
+        request = RequestFactory().get("/")
+        request.user = User.objects.create_superuser("admin_super", "adm@test.com", "pass")
+        setattr(request, "session", {})
+        messages = FallbackStorage(request)
+        setattr(request, "_messages", messages)
+
+        admin_instance.delete_selected_records(request, CheckInRecord.objects.filter(id=r1.id))
+        self.assertFalse(CheckInRecord.objects.filter(id=r1.id).exists())
