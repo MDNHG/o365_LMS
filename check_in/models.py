@@ -2,6 +2,42 @@ from django.db import models
 from django.conf import settings
 
 
+class CheckInLocation(models.Model):
+    """
+    Địa điểm mốc điểm danh — giảng viên có thể chọn / thay đổi.
+    Các vị trí mặc định được nạp từ hust_gps_coordinates.md.
+    """
+    name = models.CharField(max_length=120, verbose_name="Tên địa điểm")
+    zone = models.CharField(
+        max_length=60, blank=True, default="",
+        verbose_name="Khu vực (VD: C zone, D zone)",
+    )
+    latitude = models.FloatField(verbose_name="Vĩ độ")
+    longitude = models.FloatField(verbose_name="Kinh độ")
+    default_radius_meters = models.FloatField(
+        default=50.0,
+        verbose_name="Bán kính mặc định (m)",
+    )
+    is_active = models.BooleanField(default=True, verbose_name="Đang sử dụng")
+    is_current = models.BooleanField(default=False, verbose_name="Đang là mốc điểm danh hiện tại")
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="created_locations",
+        verbose_name="Người tạo",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Địa điểm điểm danh"
+        verbose_name_plural = "Danh sách địa điểm điểm danh"
+        ordering = ["zone", "name"]
+
+    def __str__(self):
+        return f"{self.name} ({self.latitude:.5f}, {self.longitude:.5f})"
+
+
 class CheckInRecord(models.Model):
     # Người dùng (nếu có đăng nhập, để null nếu check-in khách)
     user = models.ForeignKey(
@@ -22,6 +58,14 @@ class CheckInRecord(models.Model):
     target_latitude = models.FloatField(verbose_name="Vĩ độ mục tiêu")
     target_longitude = models.FloatField(verbose_name="Kinh độ mục tiêu")
 
+    # Liên kết với địa điểm đã chọn (nếu có)
+    location = models.ForeignKey(
+        CheckInLocation,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name="Địa điểm mốc",
+    )
+
     # Kết quả tính toán
     distance_meters = models.FloatField(verbose_name="Khoảng cách thực tế (m)")
     allowed_radius_meters = models.FloatField(
@@ -32,6 +76,13 @@ class CheckInRecord(models.Model):
     )
     message = models.CharField(
         max_length=255, blank=True, verbose_name="Thông báo kết quả"
+    )
+
+    # Ảnh chụp camera minh chứng
+    photo = models.ImageField(
+        upload_to="check_in_photos/%Y/%m/%d/",
+        null=True, blank=True,
+        verbose_name="Ảnh minh chứng",
     )
 
     created_at = models.DateTimeField(

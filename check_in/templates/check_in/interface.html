@@ -1,79 +1,310 @@
-<!DOCTYPE html>
+{% load l10n %}<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Điểm Danh Check-in GPS - CLB o365</title>
+    <title>Điểm Danh Giảng Viên - CLB o365</title>
     <style>
+        * { box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #0f172a;
             color: #f8fafc;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 100vh;
             margin: 0;
             padding: 20px;
-            box-sizing: border-box;
         }
         .container {
             background-color: #1e293b;
-            padding: 30px;
-            border-radius: 14px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            max-width: 440px;
+            padding: 26px;
+            border-radius: 16px;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.55);
+            max-width: 520px;
             width: 100%;
             text-align: center;
         }
-        h2 { color: #38bdf8; margin-top: 0; margin-bottom: 8px; font-size: 22px; }
-        .target-info {
+        .badge-teacher {
+            display: inline-block;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: #1e293b;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        h2 {
+            color: #38bdf8;
+            margin-top: 0;
+            margin-bottom: 6px;
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+        }
+        .subtitle {
+            color: #94a3b8;
+            font-size: 13.5px;
+            margin-bottom: 16px;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        /* ─── Cards ─── */
+        .info-card {
             background-color: #0f172a;
             border: 1px solid #334155;
-            border-radius: 8px;
-            padding: 10px 14px;
-            margin: 14px 0;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin: 12px 0;
             font-size: 13px;
             color: #94a3b8;
             text-align: left;
         }
-        .target-info strong { color: #e2e8f0; }
-        p { color: #94a3b8; font-size: 14px; line-height: 1.5; margin-bottom: 15px; }
-        button {
-            background-color: #0284c7;
-            color: white;
+        .info-card.active-target {
+            border-color: #38bdf8;
+            background: linear-gradient(180deg, #0f172a 0%, #132238 100%);
+        }
+        .info-card strong { color: #e2e8f0; }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 7px;
+        }
+        .info-row:last-child { margin-bottom: 0; }
+
+        /* ─── Inputs (for guest teacher) ─── */
+        .input-group {
+            margin: 10px 0;
+            text-align: left;
+        }
+        .input-group label {
+            display: block;
+            font-size: 11.5px;
+            color: #94a3b8;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 9px 12px;
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #f8fafc;
+            font-size: 13.5px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-group input:focus { border-color: #38bdf8; }
+
+        /* ─── Button Đổi vị trí mốc ─── */
+        .btn-change-location {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: #0f172a;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 10px 16px;
             border: none;
-            padding: 14px 20px;
-            font-size: 15px;
-            font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
             width: 100%;
             margin-top: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
             transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
         }
-        button:hover { background-color: #0369a1; }
-        button:disabled { background-color: #475569; cursor: not-allowed; }
+        .btn-change-location:hover {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            transform: translateY(-1px);
+        }
+
+        /* ─── Camera Section ─── */
+        .camera-section {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 12px 0;
+            text-align: center;
+        }
+        #camera-preview {
+            width: 100%;
+            max-height: 280px;
+            border-radius: 8px;
+            background: #020617;
+            display: none;
+        }
+        #camera-canvas { display: none; }
+        #captured-photo {
+            width: 100%;
+            max-height: 280px;
+            border-radius: 8px;
+            border: 2px solid #22c55e;
+            display: none;
+            margin-top: 8px;
+        }
+        .camera-placeholder {
+            color: #64748b;
+            padding: 24px 16px;
+            font-size: 13px;
+        }
+        .camera-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Hộp hướng dẫn cấp quyền camera */
+        .permission-guide-box {
+            background: rgba(245, 158, 11, 0.12);
+            border: 1.5px solid #f59e0b;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-top: 10px;
+            text-align: left;
+            font-size: 12px;
+            line-height: 1.55;
+            color: #fde68a;
+            display: none;
+        }
+        .permission-guide-box strong { color: #fff; }
+
+        .btn-file-upload {
+            background: #334155;
+            color: #f8fafc;
+            border: 1px solid #475569;
+            font-size: 12.5px;
+            padding: 9px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-file-upload:hover { background: #475569; }
+
+        /* ─── Toggle Switch ─── */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 12px 0;
+            padding: 8px 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+        }
+        .toggle-label { font-size: 13px; color: #cbd5e1; }
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #475569;
+            border-radius: 24px;
+            transition: 0.3s;
+        }
+        .toggle-slider:before {
+            content: "";
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #f8fafc;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        .toggle-switch input:checked + .toggle-slider { background-color: #22c55e; }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+        /* ─── Buttons ─── */
+        .btn {
+            border: none;
+            padding: 11px 16px;
+            font-size: 13.5px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        button.btn-checkin {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            font-size: 15px;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 14px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        button.btn-checkin:hover {
+            background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+            transform: translateY(-1px);
+        }
+        button.btn-checkin:disabled {
+            background: #475569;
+            box-shadow: none;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        .btn-capture { background: #dc2626; color: #fff; }
+        .btn-capture:hover { background: #b91c1c; }
+        .btn-retake { background: #334155; color: #f8fafc; display: none; }
+
         .btn-export {
             display: block;
             background-color: #059669;
             color: white;
             text-decoration: none;
-            padding: 12px 20px;
-            font-size: 14px;
+            padding: 11px 16px;
+            font-size: 13.5px;
             font-weight: bold;
             border-radius: 8px;
             margin-top: 12px;
             transition: all 0.2s;
-            box-sizing: border-box;
+            text-align: center;
         }
         .btn-export:hover { background-color: #047857; }
+
+        /* ─── Status Box ─── */
         #status-box {
-            margin-top: 20px;
-            padding: 14px;
-            border-radius: 8px;
+            margin-top: 16px;
+            padding: 14px 16px;
+            border-radius: 10px;
             display: none;
-            font-size: 14px;
+            font-size: 13px;
             text-align: left;
             line-height: 1.6;
             word-break: break-word;
@@ -82,126 +313,1333 @@
         .error { background-color: #7f1d1d; color: #fca5a5; border: 1px solid #dc2626; }
         .map-link {
             display: inline-block;
-            margin-top: 8px;
+            margin-top: 6px;
             color: #38bdf8;
             text-decoration: underline;
-            font-size: 13px;
+            font-size: 12.5px;
+            font-weight: 500;
         }
         .back-link {
             display: inline-block;
-            margin-top: 20px;
+            margin-top: 18px;
             color: #64748b;
             text-decoration: none;
             font-size: 13px;
             transition: color 0.2s;
         }
         .back-link:hover { color: #94a3b8; }
+
+        /* ─── Announcement Banner ─── */
+        .announcement-banner {
+            background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+            border: 1.5px solid #10b981;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            display: none;
+            text-align: left;
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.25);
+            animation: bannerSlide 0.3s ease-out;
+        }
+        .announcement-banner.warning {
+            background: linear-gradient(135deg, #78350f 0%, #92400e 100%) !important;
+            border: 1.5px solid #f59e0b !important;
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35) !important;
+        }
+        .announcement-banner.warning strong { color: #fde68a !important; }
+        .announcement-banner.warning div { color: #fef3c7 !important; }
+
+        .announcement-banner.danger {
+            background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%) !important;
+            border: 1.5px solid #ef4444 !important;
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.35) !important;
+        }
+        .announcement-banner.danger strong { color: #fca5a5 !important; }
+        .announcement-banner.danger div { color: #fee2e2 !important; }
+
+        .announcement-banner.success {
+            background: linear-gradient(135deg, #064e3b 0%, #065f46 100%) !important;
+            border: 1.5px solid #10b981 !important;
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.25) !important;
+        }
+        .announcement-banner.success strong { color: #6ee7b7 !important; }
+        .announcement-banner.success div { color: #d1fae5 !important; }
+        @keyframes bannerSlide {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .glow-highlight {
+            animation: glowPulse 1.8s ease-out;
+        }
+        @keyframes glowPulse {
+            0% { box-shadow: 0 0 0px rgba(56, 189, 248, 0); }
+            30% { box-shadow: 0 0 25px rgba(56, 189, 248, 0.85); border-color: #38bdf8; }
+            100% { box-shadow: 0 0 0px rgba(56, 189, 248, 0); }
+        }
+
+        /* ─── Modal Location Picker ─── */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 16px;
+        }
+        .modal-overlay.active {
+            display: flex !important;
+        }
+        .modal-card {
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 14px;
+            max-width: 540px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.65);
+            text-align: left;
+            color: #f8fafc;
+            animation: modalScale 0.2s ease-out;
+        }
+        @keyframes modalScale {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .search-wrapper { position: relative; margin-bottom: 10px; }
+        .search-icon {
+            position: absolute; left: 12px; top: 50%;
+            transform: translateY(-50%); font-size: 15px; color: #64748b;
+        }
+        .search-input {
+            width: 100%;
+            padding: 10px 12px 10px 36px;
+            background-color: #0f172a;
+            border: 1.5px solid #475569;
+            border-radius: 8px;
+            color: #f8fafc;
+            font-size: 13.5px;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .search-input:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        }
+
+        .location-dropdown {
+            width: 100%;
+            padding: 9px 12px;
+            background-color: #0f172a;
+            border: 1.5px solid #334155;
+            border-radius: 8px;
+            color: #f8fafc;
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        .location-dropdown:focus { border-color: #f59e0b; }
+        .location-dropdown optgroup { background-color: #020617; color: #fbbf24; font-weight: bold; }
+        .location-dropdown option { background-color: #1e293b; color: #f8fafc; padding: 6px 10px; }
+
+        .filter-chips {
+            display: flex; gap: 6px; overflow-x: auto;
+            padding-bottom: 6px; margin-bottom: 10px;
+        }
+        .chip {
+            background: #0f172a; color: #94a3b8; border: 1px solid #334155;
+            padding: 4px 10px; border-radius: 14px; font-size: 11.5px;
+            cursor: pointer; white-space: nowrap; transition: all 0.2s;
+        }
+        .chip:hover, .chip.active {
+            background: #38bdf8; color: #0f172a; font-weight: 600; border-color: #38bdf8;
+        }
+
+        .quick-results {
+            max-height: 190px; overflow-y: auto; border-radius: 8px;
+            border: 1px solid #334155; margin-bottom: 10px; display: none;
+        }
+        .quick-results::-webkit-scrollbar { width: 5px; }
+        .quick-results::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        .result-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 9px 12px; background: #0f172a; border-bottom: 1px solid #1e293b;
+            cursor: pointer; transition: background 0.15s;
+        }
+        .result-item:hover { background: #1e293b; }
+
+        .selected-preview {
+            background: #0f172a; border-radius: 8px; padding: 10px 12px;
+            margin-bottom: 12px; font-size: 12px; color: #cbd5e1;
+            border: 1px solid #334155;
+        }
+
+        .btn-apply-loc {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: #0f172a; border: none; padding: 11px 16px; font-size: 13.5px;
+            font-weight: 700; border-radius: 8px; cursor: pointer; width: 100%;
+            transition: all 0.2s; display: inline-flex; align-items: center;
+            justify-content: center; gap: 6px;
+        }
+        .btn-apply-loc:hover { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); }
+
+        .btn-my-gps {
+            background: #334155; color: #f8fafc; border: none; padding: 9px 14px;
+            font-size: 12px; font-weight: 600; border-radius: 6px; cursor: pointer;
+            width: 100%; margin-top: 8px; display: inline-flex; align-items: center;
+            justify-content: center; gap: 6px;
+        }
+        .btn-my-gps:hover { background: #475569; }
+
+        .manual-toggle {
+            display: inline-block; margin-top: 10px; font-size: 12px;
+            color: #38bdf8; cursor: pointer; text-decoration: underline;
+        }
+        .manual-form {
+            display: none; margin-top: 10px; padding-top: 10px;
+            border-top: 1px solid #334155;
+        }
+        .input-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .input-row .input-group { flex: 1; margin: 0; }
+        .btn-save-loc {
+            background: #059669; color: white; font-size: 12px; padding: 8px 14px;
+            width: 100%; margin-top: 6px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>📍 Điểm Danh Sự Kiện</h2>
-    <p>Hệ thống sẽ lấy tọa độ GPS từ thiết bị của bạn để xác thực khoảng cách đến vị trí lớp học / sự kiện.</p>
-
-    <div class="target-info">
-        <div><strong>Địa điểm mốc:</strong> {{ target_location_name|default:"Đại học Bách Khoa Hà Nội" }}</div>
-        <div><strong>Bán kính cho phép:</strong> {{ max_radius_meters|default:"50" }} mét</div>
+    <div style="text-align: center;">
+        <span class="badge-teacher">👨‍🏫 CỔNG ĐIỂM DANH GIẢNG VIÊN</span>
     </div>
-    
-    <button id="btn-checkin" onclick="triggerCheckIn()">📍 BẮT ĐẦU CHECK-IN</button>
-    <div style="display: flex; gap: 10px; margin-top: 12px;">
-        <a href="{% url 'check_in:export_checkin_excel' %}" class="btn-export" style="flex: 2; margin-top: 0; background-color: #059669;">📊 XUẤT FILE EXCEL (.XLSX)</a>
+    <h2>📍 Điểm Danh Sự Kiện</h2>
+    <p class="subtitle">Xác thực điểm danh Giảng viên qua GPS + Camera và quản lý mốc vị trí lớp học.</p>
+
+    <!-- ─── BANNER THÔNG BÁO XÁC NHẬN MỐC THÀNH CÔNG ─── -->
+    <div class="announcement-banner" id="announcement-banner">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;">
+            <div style="display: flex; gap: 10px;">
+                <span style="font-size: 20px;" id="banner-icon">📢</span>
+                <div>
+                    <strong style="color: #6ee7b7; font-size: 13.5px;" id="banner-title">ĐÃ KÍCH HOẠT MỐC ĐIỂM DANH MỚI!</strong>
+                    <div style="font-size: 12px; color: #d1fae5; margin-top: 2px;" id="banner-body">
+                        Địa điểm: <b>--</b> · Tọa độ: <b>--</b> · Bán kính: <b>50m</b>
+                    </div>
+                    <div style="font-size: 11px; color: #a7f3d0; margin-top: 3px;" id="banner-subtext">
+                        ✓ Hệ thống đã kích hoạt và đồng bộ ngay lập tức cho toàn bộ Sinh viên trong lớp.
+                    </div>
+                </div>
+            </div>
+            <button onclick="dismissAnnouncement()" style="background: none; border: none; color: #a7f3d0; font-size: 16px; cursor: pointer; padding: 2px 6px;">✕</button>
+        </div>
+    </div>
+
+    <!-- ─── 1. THÔNG TIN GIẢNG VIÊN ĐIỂM DANH (GIỐNG GIAO DIỆN SINH VIÊN) ─── -->
+    <div class="info-card">
+        {% if teacher_info.is_authenticated %}
+            <div class="info-row">
+                <span>Họ và tên Giảng viên:</span>
+                <strong>{{ teacher_info.full_name|default:teacher_info.username }}</strong>
+            </div>
+            <div class="info-row">
+                <span>Tài khoản / Mã GV:</span>
+                <strong>{{ teacher_info.username }}</strong>
+            </div>
+            {% if teacher_info.email %}
+            <div class="info-row">
+                <span>Email:</span>
+                <strong>{{ teacher_info.email }}</strong>
+            </div>
+            {% endif %}
+            <div class="info-row">
+                <span>Vai trò:</span>
+                <span style="color: #38bdf8; font-weight: 600;">👨‍🏫 {{ teacher_info.role }}</span>
+            </div>
+            <div class="info-row">
+                <span>Trạng thái:</span>
+                <span style="color: #22c55e; font-weight: 600;">● Đã xác thực LMS</span>
+            </div>
+        {% else %}
+            <div style="margin-bottom: 6px; color: #cbd5e1; font-weight: 600;">
+                Nhập thông tin Giảng viên điểm danh:
+            </div>
+            <div class="input-group">
+                <label for="input-teacher-id">Mã Giảng viên / Tài khoản:</label>
+                <input type="text" id="input-teacher-id" placeholder="VD: GV202401 hoặc email" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label for="input-teacher-name">Họ và tên Giảng viên:</label>
+                <input type="text" id="input-teacher-name" placeholder="VD: TS. Nguyễn Văn B" autocomplete="off">
+            </div>
+            <div style="font-size: 11.5px; color: #94a3b8; margin-top: 6px;">
+                💡 <a href="/accounts/login/?next={{ request.path }}" style="color: #38bdf8; text-decoration: underline;">Đăng nhập tài khoản</a> để tự động ghi nhận vào hồ sơ Giảng viên.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- ─── 2. THẺ MỐC ĐIỂM DANH HIỆN TẠI & NÚT ĐỔI MỐC ─── -->
+    <div class="info-card active-target" id="current-location-card">
+        <div class="info-row">
+            <span>📍 Mốc điểm danh hiện tại:</span>
+            <strong id="display-location-name" style="color: #38bdf8; font-size: 14.5px;">{{ target_location_name|default:"Đại học Bách Khoa Hà Nội" }}</strong>
+        </div>
+        <div class="info-row">
+            <span>Tọa độ GPS mốc:</span>
+            <strong id="display-coords" style="font-family: monospace;">{% localize off %}{{ target_latitude|floatformat:5 }}, {{ target_longitude|floatformat:5 }}{% endlocalize %}</strong>
+        </div>
+        <div class="info-row">
+            <span>Bán kính cho phép:</span>
+            <strong><span id="display-radius">{% localize off %}{{ max_radius_meters|default:"50" }}{% endlocalize %}</span> mét</strong>
+        </div>
+        <div class="info-row" style="margin-top: 4px;">
+            {% localize off %}
+            <a id="display-map-link" class="map-link" href="https://www.google.com/maps?q={{ target_latitude }},{{ target_longitude }}" target="_blank" rel="noopener">
+                🗺️ Mở vị trí mốc trên Google Maps
+            </a>
+            {% endlocalize %}
+            <span style="font-size: 11.5px; color: #22c55e;">● Đang đồng bộ với Sinh viên</span>
+        </div>
+
+        <!-- Nút bấm mở bảng chọn mốc GPS (34 địa điểm HUST) -->
+        <button type="button" class="btn-change-location" onclick="openLocationPickerModal()">
+            🔄 ĐỔI VỊ TRÍ MỐC CHECK-IN (34 ĐỊA ĐIỂM HUST)
+        </button>
+    </div>
+
+    <!-- ─── 3. PHẦN CAMERA XÁC THỰC CÓ MẶT (GIỐNG SINH VIÊN) ─── -->
+    <div class="toggle-row">
+        <span class="toggle-label">📸 Chụp ảnh xác thực có mặt (Camera/Webcam)</span>
+        <label class="toggle-switch">
+            <input type="checkbox" id="toggle-camera" onchange="toggleCamera(this.checked)">
+            <span class="toggle-slider"></span>
+        </label>
+    </div>
+
+    <div class="camera-section" id="camera-section" style="display: none;">
+        <video id="camera-preview" autoplay playsinline muted></video>
+        <canvas id="camera-canvas"></canvas>
+        <img id="captured-photo" alt="Ảnh chụp minh chứng">
+        <div class="camera-placeholder" id="camera-placeholder">
+            📷 Đang kết nối camera...
+        </div>
+
+        <!-- Khung hướng dẫn cấp quyền camera (web / app) -->
+        <div class="permission-guide-box" id="camera-permission-guide">
+            <div style="display: flex; align-items: flex-start; gap: 8px;">
+                <span style="font-size: 18px;">🔒</span>
+                <div>
+                    <strong>Quyền truy cập Camera chưa sẵn sàng:</strong>
+                    <div style="margin-top: 4px;" id="camera-error-detail">
+                        Trình duyệt hoặc ứng dụng chưa cấp quyền truy cập Camera.
+                    </div>
+                    <ul style="margin: 6px 0 8px 18px; padding: 0;">
+                        <li><b>Trên máy tính:</b> Nhấn vào biểu tượng 🔒 hoặc 📷 trên thanh địa chỉ trình duyệt $\rightarrow$ Chọn <i>Cho phép (Allow)</i> $\rightarrow$ Bấm <i>Thử lại Camera</i>.</li>
+                        <li><b>Trên điện thoại / App:</b> Vào <i>Cài đặt máy $\rightarrow$ Ứng dụng $\rightarrow$ Quyền $\rightarrow$ Camera $\rightarrow$ Cho phép khi dùng</i>.</li>
+                        <li><b>Chụp trực tiếp:</b> Bạn có thể bấm nút <b>"📷 Chụp bằng Máy ảnh điện thoại / Tải ảnh"</b> bên dưới để mở app camera máy mà không cần cấp quyền trình duyệt!</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Các nút điều khiển camera -->
+        <div class="camera-controls">
+            <button class="btn btn-capture" id="btn-capture" onclick="capturePhoto()" style="display:none;">📸 Chụp ảnh</button>
+            <button class="btn btn-retake" id="btn-retake" onclick="retakePhoto()">🔄 Chụp lại</button>
+            <button class="btn btn-file-upload" id="btn-file-upload" type="button" onclick="triggerFileInput()">
+                📷 Chụp bằng Máy ảnh điện thoại / Tải ảnh
+            </button>
+        </div>
+
+        <!-- Input file ẩn hỗ trợ mở camera gốc của máy (PWA, mobile web, Android, iOS) -->
+        <input type="file" id="camera-file-input" accept="image/*" capture="user" style="display: none;" onchange="handleFileInput(this)">
+    </div>
+
+    <!-- ─── 4. NÚT CHECK-IN CHO GIẢNG VIÊN (GIỐNG SINH VIÊN) ─── -->
+    <button id="btn-checkin" class="btn-checkin" onclick="triggerCheckIn()">📍 BẮT ĐẦU ĐIỂM DANH GPS</button>
+
+    <!-- Chế độ test nếu GPS desktop bị chặn -->
+    <div style="margin-top: 8px; text-align: center;">
+        <button id="btn-mock-test" onclick="triggerCheckIn(true)" style="background: none; border: none; color: #64748b; font-size: 11.5px; cursor: pointer; text-decoration: underline;">
+            🧪 Thử nghiệm check-in khớp mốc (Test Mode)
+        </button>
+    </div>
+
+    <!-- Khung thông báo kết quả -->
+    <div id="status-box"></div>
+
+    <!-- Xuất dữ liệu dành cho Giảng viên / Ban tổ chức -->
+    <div style="display: flex; gap: 10px; margin-top: 14px;">
+        <a href="{% url 'check_in:export_checkin_excel' %}" class="btn-export" style="flex: 2; margin-top: 0; background-color: #059669;">📊 XUẤT EXCEL (.XLSX)</a>
         <a href="{% url 'check_in:export_checkin_csv' %}" class="btn-export" style="flex: 1; margin-top: 0; background-color: #334155; font-size: 13px;">CSV</a>
     </div>
 
-    <div id="status-box"></div>
+    <!-- Nút xóa lịch sử điểm danh (Dành cho Admin / Giảng viên) -->
+    <div style="margin-top: 10px;">
+        <button
+            type="button"
+            id="btn-open-clear-modal"
+            class="btn"
+            onclick="openClearHistoryModal()"
+            style="width: 100%; background: #b91c1c; color: #ffffff; font-size: 12.5px; padding: 10px 14px; border-radius: 8px; border: 1px solid #ef4444;"
+        >
+            🗑️ XÓA LỊCH SỬ ĐIỂM DANH (ADMIN / GIẢNG VIÊN)
+        </button>
+    </div>
 
-    <div>
+    <div style="text-align: center;">
         <a href="/" class="back-link">← Quay về Trang chủ LMS</a>
     </div>
 </div>
 
-<script>
-const CHECK_IN_API_URL = "{% url 'check_in:check_in_api' %}";
 
-function triggerCheckIn() {
+<!-- ─── MODAL XÁC NHẬN XÓA LỊCH SỬ ĐIỂM DANH ─── -->
+<div class="modal-overlay" id="clear-history-modal" onclick="if(event.target===this) closeClearHistoryModal()">
+    <div class="modal-card" style="max-width: 480px; text-align: left; border: 1.5px solid #ef4444; box-shadow: 0 20px 45px rgba(239, 68, 68, 0.4);">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #334155; padding-bottom: 12px; margin-bottom: 14px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 26px;">⚠️</span>
+                <div>
+                    <strong style="color: #ef4444; font-size: 15.5px; display: block;">CẢNH BÁO QUAN TRỌNG</strong>
+                    <span style="font-size: 11px; color: #f87171; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">XÓA TOÀN BỘ LỊCH SỬ ĐIỂM DANH</span>
+                </div>
+            </div>
+            <button type="button" onclick="closeClearHistoryModal()" style="background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; padding: 2px 6px;">✕</button>
+        </div>
+
+        <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 14px;">
+            <p style="color: #fca5a5; font-size: 12.5px; line-height: 1.55; margin: 0;">
+                ⚠️ <b>Hành động này sẽ xóa dữ liệu vĩnh viễn và KHÔNG THỂ HOÀN TÁC:</b>
+            </p>
+            <ul style="color: #cbd5e1; font-size: 12px; line-height: 1.6; margin: 8px 0 0 16px; padding: 0;">
+                <li><b>Xóa CSDL:</b> Toàn bộ bản ghi điểm danh (tên, tài khoản, tọa độ GPS, thời gian).</li>
+                <li><b>Xóa file ảnh:</b> Toàn bộ các file ảnh chụp minh chứng lưu trên máy chủ sẽ bị dọn sạch.</li>
+                <li><b>File Excel (.xlsx) & CSV:</b> Sau khi xóa, file Excel tải về sẽ hoàn toàn trống danh sách.</li>
+            </ul>
+        </div>
+
+        <!-- Hộp kiểm xác nhận bảo vệ -->
+        <div style="background: #0f172a; border: 1.5px solid #334155; border-radius: 8px; padding: 10px 12px; margin-bottom: 16px;">
+            <label style="display: flex; align-items: flex-start; gap: 9px; cursor: pointer; user-select: none;">
+                <input
+                    type="checkbox"
+                    id="confirm-clear-checkbox"
+                    onchange="toggleConfirmDeleteButton(this.checked)"
+                    style="margin-top: 2px; width: 16px; height: 16px; cursor: pointer; accent-color: #ef4444;"
+                >
+                <span style="font-size: 12.5px; color: #f8fafc; line-height: 1.45;">
+                    Tôi đã đọc kỹ cảnh báo và <b>xác nhận muốn xóa toàn bộ</b> lịch sử điểm danh cùng các file ảnh minh chứng.
+                </span>
+            </label>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button
+                type="button"
+                onclick="closeClearHistoryModal()"
+                style="flex: 1; background: #334155; color: #f8fafc; border: 1px solid #475569; padding: 11px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s;"
+                onmouseover="this.style.background='#475569'"
+                onmouseout="this.style.background='#334155'"
+            >
+                ✕ Hủy bỏ & Đóng
+            </button>
+            <button
+                type="button"
+                id="btn-confirm-delete"
+                disabled
+                onclick="executeClearHistory()"
+                style="flex: 1.4; background: #7f1d1d; color: #ffffff; border: none; padding: 11px 14px; border-radius: 8px; font-weight: 700; cursor: not-allowed; opacity: 0.5; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;"
+            >
+                🗑️ Xác nhận xóa vĩnh viễn
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ─── MODAL HỘP THOẠI CHỌN VỊ TRÍ MỐC CHECK-IN (34 VỊ TRÍ HUST) ─── -->
+<div class="modal-overlay" id="location-picker-modal" onclick="if(event.target===this) closeLocationPickerModal()">
+    <div class="modal-card">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #334155; padding-bottom: 12px; margin-bottom: 14px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 20px;">🏛️</span>
+                <strong style="color: #fbbf24; font-size: 15px;">THAY ĐỔI VỊ TRÍ MỐC CHECK-IN (HUST)</strong>
+            </div>
+            <button onclick="closeLocationPickerModal()" style="background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; padding: 2px 6px;">✕</button>
+        </div>
+
+        <!-- Thanh tìm kiếm nhanh (Search Bar) -->
+        <div class="search-wrapper">
+            <span class="search-icon">🔎</span>
+            <input
+                type="text"
+                id="search-box"
+                class="search-input"
+                placeholder="Gõ tìm kiếm tòa nhà: C1, D3, B1, C3-4, Thư viện, Bãi xe..."
+                autocomplete="off"
+                oninput="handleSearch(this.value)"
+            />
+        </div>
+
+        <!-- Filter chips theo phân khu -->
+        <div class="filter-chips" id="zone-chips">
+            <span class="chip active" onclick="filterByChip('')">Tất cả (<span id="count-all">34</span>)</span>
+            <span class="chip" onclick="filterByChip('c zone')">C zone</span>
+            <span class="chip" onclick="filterByChip('d zone')">D zone</span>
+            <span class="chip" onclick="filterByChip('landmarks')">Landmarks</span>
+            <span class="chip" onclick="filterByChip('bãi xe')">Bãi xe / Quảng trường</span>
+            <span class="chip" onclick="filterByChip('b1')">B1</span>
+        </div>
+
+        <!-- Dropdown chọn địa điểm (List Location) -->
+        <label for="location-select" style="font-size: 11.5px; color: #94a3b8; display: block; margin-bottom: 4px; font-weight: 600;">
+            Hoặc chọn trực tiếp từ danh mục địa điểm:
+        </label>
+        <select id="location-select" class="location-dropdown" onchange="applyLocationById(this.value)">
+            {% for zone, locs in locations_by_zone.items %}
+                <optgroup label="── {{ zone }} ──">
+                    {% for loc in locs %}
+                        <option
+                            value="{{ loc.id }}"
+                            {% if loc.is_current %}selected{% endif %}
+                        >
+                            {{ loc.name }} ({% localize off %}{{ loc.latitude|floatformat:5 }}, {{ loc.longitude|floatformat:5 }}{% endlocalize %})
+                        </option>
+                    {% endfor %}
+                </optgroup>
+            {% endfor %}
+        </select>
+
+        <!-- Danh sách kết quả tìm kiếm mở rộng (nếu gõ tìm kiếm) -->
+        <div class="quick-results" id="search-results-list"></div>
+
+        <!-- Xem trước tọa độ địa điểm đang chọn -->
+        <div class="selected-preview" id="selected-preview-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <div>
+                    Đang chọn: <strong id="preview-name" style="color: #fbbf24;">...</strong>
+                    <span id="preview-zone" style="color: #38bdf8; font-size: 11.5px; margin-left: 4px;"></span>
+                    <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">
+                        Tọa độ: <span id="preview-coords">...</span> · Bán kính: <span id="preview-radius">50</span>m
+                    </div>
+                </div>
+                <div>
+                    <a id="preview-map-link" href="#" target="_blank" rel="noopener" class="map-link">Google Maps</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nút bấm xác nhận đổi mốc điểm danh toàn hệ thống -->
+        <button class="btn-apply-loc" onclick="requestApplyLocation()">
+            ✅ ÁP DỤNG ĐỊA ĐIỂM NÀY CHO CẢ LỚP
+        </button>
+
+        <!-- Nút lấy GPS hiện tại làm mốc -->
+        <button class="btn-my-gps" onclick="useCurrentGpsAsTarget()">
+            📍 Hoặc lấy tọa độ GPS hiện tại của tôi làm mốc
+        </button>
+
+        <!-- Nhập tọa độ thủ công & lưu mới -->
+        <div style="text-align: right; margin-top: 10px;">
+            <span class="manual-toggle" onclick="toggleManualForm()">➕ Nhập tọa độ thủ công khác</span>
+        </div>
+
+        <div class="manual-form" id="manual-form">
+            <div class="input-group">
+                <label for="man-name">Tên địa điểm / Phòng học:</label>
+                <input type="text" id="man-name" placeholder="VD: Phòng C1-301">
+            </div>
+            <div class="input-row">
+                <div class="input-group">
+                    <label for="man-lat">Vĩ độ (Lat):</label>
+                    <input type="number" step="any" id="man-lat" placeholder="21.00977">
+                </div>
+                <div class="input-group">
+                    <label for="man-lon">Kinh độ (Lon):</label>
+                    <input type="number" step="any" id="man-lon" placeholder="105.84462">
+                </div>
+            </div>
+            <div class="input-row">
+                <div class="input-group">
+                    <label for="man-radius">Bán kính (m):</label>
+                    <input type="number" step="any" id="man-radius" value="50">
+                </div>
+                <div class="input-group">
+                    <label for="man-zone">Khu vực:</label>
+                    <input type="text" id="man-zone" placeholder="VD: C zone">
+                </div>
+            </div>
+            <button class="btn btn-save-loc" onclick="saveManualLocation()">💾 Lưu & Áp dụng ngay</button>
+            <div id="manual-status" style="font-size: 11.5px; margin-top: 6px; color: #94a3b8;"></div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+// ─── DỮ LIỆU & CẤU HÌNH ───────────────────────────────────────────────────────
+const CHECK_IN_API_URL = "{% url 'check_in:check_in_api' %}";
+const SET_ACTIVE_LOCATION_URL = "{% url 'check_in:set_active_location_api' %}";
+const LOCATION_UPDATE_API_URL = "{% url 'check_in:update_location_api' %}";
+const CSRF_TOKEN = "{{ csrf_token }}";
+
+{% localize off %}
+// Tọa độ mục tiêu đang hoạt động (unlocalized float values)
+let activeTarget = {
+    latitude: {{ target_latitude }},
+    longitude: {{ target_longitude }},
+    radius: {{ max_radius_meters }},
+    name: "{{ target_location_name|default:'Đại học Bách Khoa Hà Nội' }}",
+    locationId: {{ current_location_id|default:"null" }},
+};
+{% endlocalize %}
+
+let locationsData = [];
+try {
+    locationsData = JSON.parse('{{ locations_json|escapejs }}');
+} catch(e) {
+    locationsData = [];
+}
+
+let currentChipFilter = '';
+let cameraStream = null;
+let capturedPhotoData = null;
+
+function escapeHtml(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function getLocationById(locId) {
+    if (!locationsData || !locationsData.length) return null;
+    return locationsData.find(l => String(l.id) === String(locId)) || null;
+}
+
+// ─── MODAL CHỌN ĐỊA ĐIỂM (OPEN / CLOSE) ──────────────────────────────────────
+function openLocationPickerModal() {
+    const modal = document.getElementById("location-picker-modal");
+    modal.style.display = "flex";
+
+    // Đồng bộ preview trong modal theo activeTarget hiện tại
+    updateModalPreview(activeTarget.name, activeTarget.latitude, activeTarget.longitude, activeTarget.radius, "");
+
+    setTimeout(() => {
+        const searchBox = document.getElementById("search-box");
+        if (searchBox) searchBox.focus();
+    }, 100);
+}
+
+function closeLocationPickerModal() {
+    document.getElementById("location-picker-modal").style.display = "none";
+}
+
+function updateModalPreview(name, lat, lon, radius, zone = "") {
+    const pName = document.getElementById("preview-name");
+    const pZone = document.getElementById("preview-zone");
+    const pCoords = document.getElementById("preview-coords");
+    const pRadius = document.getElementById("preview-radius");
+    const pMap = document.getElementById("preview-map-link");
+
+    if (pName) pName.textContent = name;
+    if (pZone) pZone.textContent = zone ? `[${zone}]` : "";
+    if (pCoords) pCoords.textContent = `${Number(lat).toFixed(5)}, ${Number(lon).toFixed(5)}`;
+    if (pRadius) pRadius.textContent = radius;
+    if (pMap) pMap.href = `https://www.google.com/maps?q=${lat},${lon}`;
+}
+
+// ─── ÁP DỤNG ĐỊA ĐIỂM TỨC THÌ (IMMEDIATELY) ──────────────────────────────────
+async function applyLocationById(locId) {
+    const loc = getLocationById(locId);
+    if (!loc) return;
+
+    activeTarget.latitude = Number(loc.latitude);
+    activeTarget.longitude = Number(loc.longitude);
+    activeTarget.radius = Number(loc.default_radius_meters || 50);
+    activeTarget.name = loc.name;
+    activeTarget.locationId = loc.id;
+
+    // 1. Cập nhật giao diện mốc điểm danh ngoài màn hình chính ngay lập tức
+    const nameEl = document.getElementById("display-location-name");
+    const coordsEl = document.getElementById("display-coords");
+    const radiusEl = document.getElementById("display-radius");
+    const mapLinkEl = document.getElementById("display-map-link");
+
+    if (nameEl) nameEl.textContent = activeTarget.name;
+    if (coordsEl) coordsEl.textContent = `${activeTarget.latitude.toFixed(5)}, ${activeTarget.longitude.toFixed(5)}`;
+    if (radiusEl) radiusEl.textContent = activeTarget.radius;
+    if (mapLinkEl) mapLinkEl.href = `https://www.google.com/maps?q=${activeTarget.latitude},${activeTarget.longitude}`;
+
+    // 2. Cập nhật preview trong modal
+    updateModalPreview(activeTarget.name, activeTarget.latitude, activeTarget.longitude, activeTarget.radius, loc.zone);
+
+    // 3. Đồng bộ dropdown select
+    const sel = document.getElementById("location-select");
+    if (sel) sel.value = String(loc.id);
+
+    // 4. Hiệu ứng phát sáng trên thẻ mốc
+    const card = document.getElementById("current-location-card");
+    if (card) {
+        card.classList.remove("glow-highlight");
+        void card.offsetWidth;
+        card.classList.add("glow-highlight");
+    }
+
+    // 5. Hiển thị Banner thông báo nổi bật cho Giảng viên
+    showAnnouncementBanner(activeTarget);
+
+    // 6. Đồng bộ lên máy chủ cho sinh viên
+    await syncLocationToBackend(loc.id);
+
+    // 7. Cập nhật hộp thông báo trạng thái
+    showStatus(
+        `<b>✅ Đã chuyển vị trí mốc hiện tại sang:</b> 🏛️ <b>${escapeHtml(activeTarget.name)}</b> (${activeTarget.latitude.toFixed(5)}, ${activeTarget.longitude.toFixed(5)})<br>` +
+        `Bán kính cho phép: <b>${activeTarget.radius}m</b> · <i>Toàn bộ sinh viên đã được đồng bộ tự động theo mốc này!</i>`,
+        true
+    );
+}
+
+function requestApplyLocation() {
+    const sel = document.getElementById("location-select");
+    if (!sel || !sel.value) {
+        alert("Vui lòng chọn một địa điểm từ danh sách.");
+        return;
+    }
+    applyLocationById(sel.value);
+    closeLocationPickerModal();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function syncLocationToBackend(locId, extraData = null) {
+    const bodyData = locId ? { location_id: locId } : extraData;
+    if (!bodyData) return;
+
+    try {
+        const resp = await fetch(SET_ACTIVE_LOCATION_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": CSRF_TOKEN,
+            },
+            body: JSON.stringify(bodyData)
+        });
+        const data = await resp.json();
+        if (data.success && data.location) {
+            activeTarget.locationId = data.location.id;
+            console.log("Đã đồng bộ mốc thành công:", data.location.name);
+        }
+    } catch (err) {
+        console.warn("Lỗi đồng bộ mốc:", err);
+    }
+}
+
+// ─── TÌM KIẾM THEO TỪ KHÓA & CHIPS ──────────────────────────────────────────
+function handleSearch(query) {
+    const q = (query || "").toLowerCase().trim();
+    const resultsContainer = document.getElementById("search-results-list");
+
+    if (!q && !currentChipFilter) {
+        resultsContainer.style.display = "none";
+        return;
+    }
+
+    resultsContainer.style.display = "block";
+    resultsContainer.innerHTML = "";
+
+    let matched = locationsData;
+    if (currentChipFilter) {
+        matched = matched.filter(loc => (loc.zone || "").toLowerCase().includes(currentChipFilter.toLowerCase()));
+    }
+    if (q) {
+        matched = matched.filter(loc => {
+            const name = (loc.name || "").toLowerCase();
+            const zone = (loc.zone || "").toLowerCase();
+            return name.includes(q) || zone.includes(q) || String(loc.latitude).includes(q) || String(loc.longitude).includes(q);
+        });
+    }
+
+    if (matched.length === 0) {
+        resultsContainer.innerHTML = `<div style="padding: 12px; color: #64748b; font-size: 12px; text-align: center;">Không tìm thấy địa điểm phù hợp</div>`;
+        return;
+    }
+
+    matched.forEach(loc => {
+        const item = document.createElement("div");
+        item.className = "result-item";
+        item.onclick = () => {
+            applyLocationById(loc.id);
+            resultsContainer.style.display = "none";
+            document.getElementById("search-box").value = loc.name;
+            closeLocationPickerModal();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        };
+        item.innerHTML = `
+            <div>
+                <strong style="color: #f8fafc; font-size: 13px;">${escapeHtml(loc.name)}</strong>
+                <span style="color: #38bdf8; font-size: 11px; margin-left: 4px;">[${escapeHtml(loc.zone)}]</span>
+                <div style="font-size: 11px; color: #64748b;">${Number(loc.latitude).toFixed(5)}, ${Number(loc.longitude).toFixed(5)}</div>
+            </div>
+            <button type="button" style="background:#0284c7; color:#fff; border:none; padding:5px 12px; border-radius:4px; font-size:12px; font-weight:600; cursor:pointer;">
+                Chọn
+            </button>
+        `;
+        resultsContainer.appendChild(item);
+    });
+}
+
+function filterByChip(chipName) {
+    currentChipFilter = chipName;
+
+    // Cập nhật giao diện chip
+    document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+    const chips = document.getElementById("zone-chips").children;
+    if (!chipName) chips[0].classList.add("active");
+    else {
+        for (let chip of chips) {
+            if (chip.textContent.toLowerCase().includes(chipName.toLowerCase())) {
+                chip.classList.add("active");
+                break;
+            }
+        }
+    }
+
+    // Lọc dropdown
+    filterDropdownByZone(chipName);
+    const searchVal = document.getElementById("search-box").value;
+    handleSearch(searchVal);
+}
+
+function filterDropdownByZone(zone) {
+    const sel = document.getElementById("location-select");
+    const optgroups = sel.querySelectorAll("optgroup");
+
+    optgroups.forEach(og => {
+        if (!zone) {
+            og.style.display = "";
+        } else {
+            const label = og.label.toLowerCase();
+            og.style.display = label.includes(zone.toLowerCase()) ? "" : "none";
+        }
+    });
+
+    for (let opt of sel.options) {
+        if (opt.parentElement.style.display !== "none") {
+            sel.value = opt.value;
+            break;
+        }
+    }
+}
+
+function showBannerAnnouncement(options) {
+    const banner = document.getElementById("announcement-banner");
+    const iconEl = document.getElementById("banner-icon");
+    const titleEl = document.getElementById("banner-title");
+    const bodyEl = document.getElementById("banner-body");
+    const subtextEl = document.getElementById("banner-subtext");
+    if (!banner) return;
+
+    banner.classList.remove("warning", "danger", "success");
+    if (options.type) {
+        banner.classList.add(options.type);
+    } else {
+        banner.classList.add("success");
+    }
+
+    if (iconEl) iconEl.textContent = options.icon || "📢";
+    if (titleEl) titleEl.textContent = options.title || "THÔNG BÁO HỆ THỐNG";
+    if (bodyEl) bodyEl.innerHTML = options.body || "";
+    if (subtextEl) {
+        if (options.subtext) {
+            subtextEl.style.display = "block";
+            subtextEl.innerHTML = options.subtext;
+        } else {
+            subtextEl.style.display = "none";
+        }
+    }
+    banner.style.display = "block";
+    banner.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function showAnnouncementBanner(target) {
+    if (!target) return;
+    const lat = target.latitude != null ? Number(target.latitude).toFixed(5) : "--";
+    const lon = target.longitude != null ? Number(target.longitude).toFixed(5) : "--";
+    const rad = target.radius != null ? target.radius : 50;
+    const name = escapeHtml(target.name || "");
+
+    showBannerAnnouncement({
+        type: "success",
+        icon: "📢",
+        title: "ĐÃ KÍCH HOẠT MỐC ĐIỂM DANH MỚI!",
+        body: `Địa điểm: <b>${name}</b> · Tọa độ: <b>${lat}, ${lon}</b> · Bán kính: <b>${rad}m</b>`,
+        subtext: "✓ Hệ thống đã kích hoạt và đồng bộ ngay lập tức cho toàn bộ Sinh viên trong lớp.",
+    });
+}
+
+function dismissAnnouncement() {
+    const banner = document.getElementById("announcement-banner");
+    if (banner) banner.style.display = "none";
+}
+
+// ─── LẤY TỌA ĐỘ GPS HIỆN TẠI LÀM MỐC ─────────────────────────────────────────
+function useCurrentGpsAsTarget() {
+    if (!navigator.geolocation) {
+        showStatus("Trình duyệt không hỗ trợ Geolocation.", false);
+        return;
+    }
+
+    closeLocationPickerModal();
+    showStatus("⏳ Đang lấy vị trí GPS hiện tại của bạn...", true);
+
+    navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            const acc = pos.coords.accuracy ? Math.round(pos.coords.accuracy) : null;
+            const name = "📍 Vị trí GPS Giảng viên";
+            const zone = acc ? `Chính xác ±${acc}m` : "GPS thiết bị";
+
+            const customTarget = {
+                name: name,
+                latitude: lat,
+                longitude: lon,
+                radius: 50.0,
+                zone: zone
+            };
+
+            activeTarget.latitude = lat;
+            activeTarget.longitude = lon;
+            activeTarget.radius = 50.0;
+            activeTarget.name = name;
+
+            document.getElementById("display-location-name").textContent = name;
+            document.getElementById("display-coords").textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+            document.getElementById("display-radius").textContent = 50;
+            document.getElementById("display-map-link").href = `https://www.google.com/maps?q=${lat},${lon}`;
+
+            showAnnouncementBanner(activeTarget);
+            await syncLocationToBackend(null, customTarget);
+
+            showStatus(
+                `<b>✅ Đã kích hoạt GPS của Giảng viên làm mốc:</b> (${lat.toFixed(5)}, ${lon.toFixed(5)})<br>` +
+                `Bán kính cho phép: <b>50m</b> · <i>Sinh viên đã được đồng bộ tự động theo mốc này.</i>`,
+                true
+            );
+        },
+        (err) => {
+            showStatus("Không thể lấy GPS: " + (err.message || "Bạn chưa cấp quyền vị trí."), false);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
+}
+
+// ─── THỦ CÔNG & FORM TÙY CHỈNH ──────────────────────────────────────────────
+function toggleManualForm() {
+    const f = document.getElementById("manual-form");
+    f.style.display = f.style.display === "block" ? "none" : "block";
+}
+
+async function saveManualLocation() {
+    const name = document.getElementById("man-name").value.trim() || "Vị trí thủ công";
+    const lat = parseFloat(document.getElementById("man-lat").value);
+    const lon = parseFloat(document.getElementById("man-lon").value);
+    const radius = parseFloat(document.getElementById("man-radius").value) || 50;
+    const zone = document.getElementById("man-zone").value.trim() || "Tùy chỉnh";
+    const statusEl = document.getElementById("manual-status");
+
+    if (isNaN(lat) || isNaN(lon)) {
+        statusEl.textContent = "⚠️ Vui lòng nhập đầy đủ Vĩ độ (Lat) và Kinh độ (Lon).";
+        statusEl.style.color = "#fca5a5";
+        return;
+    }
+
+    const customTarget = {
+        name: name,
+        latitude: lat,
+        longitude: lon,
+        radius: radius,
+        zone: zone
+    };
+
+    activeTarget.latitude = lat;
+    activeTarget.longitude = lon;
+    activeTarget.radius = radius;
+    activeTarget.name = name;
+
+    document.getElementById("display-location-name").textContent = name;
+    document.getElementById("display-coords").textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+    document.getElementById("display-radius").textContent = radius;
+    document.getElementById("display-map-link").href = `https://www.google.com/maps?q=${lat},${lon}`;
+
+    showAnnouncementBanner(activeTarget);
+    toggleManualForm();
+    closeLocationPickerModal();
+
+    await syncLocationToBackend(null, customTarget);
+
+    showStatus(
+        `<b>✅ Đã kích hoạt địa điểm thủ công:</b> 🏛️ <b>${escapeHtml(name)}</b> (${lat.toFixed(5)}, ${lon.toFixed(5)})<br>` +
+        `Bán kính cho phép: <b>${radius}m</b> · <i>Sinh viên đã được đồng bộ tự động theo mốc này.</i>`,
+        true
+    );
+}
+
+// ─── CAMERA HỖ TRỢ ĐA NỀN TẢNG (WEB + MOBILE APP + QUYỀN CAMERA) ─────────────
+function toggleCamera(enabled) {
+    const section = document.getElementById("camera-section");
+    if (enabled) {
+        section.style.display = "block";
+        startCamera();
+    } else {
+        section.style.display = "none";
+        stopCamera();
+        capturedPhotoData = null;
+        const guide = document.getElementById("camera-permission-guide");
+        if (guide) guide.style.display = "none";
+    }
+}
+
+async function getMediaStream() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("NOT_SUPPORTED");
+    }
+    // Lần 1: Thử camera trước với độ phân giải lý tưởng
+    try {
+        return await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: "user" }, width: { ideal: 1280 }, height: { ideal: 720 } }
+        });
+    } catch (e1) {
+        console.warn("Attempt 1 camera constraint failed:", e1);
+    }
+    // Lần 2: Thử camera với facingMode môi trường
+    try {
+        return await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: "environment" } }
+        });
+    } catch (e2) {
+        console.warn("Attempt 2 camera constraint failed:", e2);
+    }
+    // Lần 3: Thử camera mặc định bất kỳ
+    return await navigator.mediaDevices.getUserMedia({ video: true });
+}
+
+async function startCamera() {
+    const video = document.getElementById("camera-preview");
+    const placeholder = document.getElementById("camera-placeholder");
+    const btnCapture = document.getElementById("btn-capture");
+    const capturedImg = document.getElementById("captured-photo");
+    const btnRetake = document.getElementById("btn-retake");
+    const guide = document.getElementById("camera-permission-guide");
+
+    capturedImg.style.display = "none";
+    btnRetake.style.display = "none";
+    if (guide) guide.style.display = "none";
+
+    placeholder.textContent = "📷 Đang kết nối camera...";
+    placeholder.style.display = "block";
+    video.style.display = "none";
+
+    try {
+        cameraStream = await getMediaStream();
+        video.srcObject = cameraStream;
+        video.style.display = "block";
+        placeholder.style.display = "none";
+        btnCapture.style.display = "inline-flex";
+    } catch (err) {
+        video.style.display = "none";
+        btnCapture.style.display = "none";
+        placeholder.style.display = "none";
+        if (guide) {
+            guide.style.display = "block";
+            const detail = document.getElementById("camera-error-detail");
+            if (err.message === "NOT_SUPPORTED") {
+                detail.textContent = "Trình duyệt yêu cầu kết nối bảo mật (HTTPS hoặc localhost) để mở camera trực tiếp. Vui lòng bấm nút 'Chụp bằng Máy ảnh điện thoại / Tải ảnh' bên dưới.";
+            } else if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+                detail.textContent = "Bạn đã từ chối hoặc chưa cấp quyền truy cập Camera trên thiết bị / trình duyệt.";
+            } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+                detail.textContent = "Không tìm thấy thiết bị camera được kết nối trên máy tính / điện thoại.";
+            } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
+                detail.textContent = "Camera đang bị ứng dụng khác (Zoom, Teams, v.v.) chiếm dụng.";
+            } else {
+                detail.textContent = "Lỗi kết nối camera: " + (err.message || err.name);
+            }
+        }
+    }
+}
+
+function stopCamera() {
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+    }
+    const video = document.getElementById("camera-preview");
+    if (video) {
+        video.srcObject = null;
+        video.style.display = "none";
+    }
+    const btnCapture = document.getElementById("btn-capture");
+    if (btnCapture) btnCapture.style.display = "none";
+    const placeholder = document.getElementById("camera-placeholder");
+    if (placeholder) placeholder.style.display = "block";
+}
+
+function capturePhoto() {
+    const video = document.getElementById("camera-preview");
+    const canvas = document.getElementById("camera-canvas");
+    const capturedImg = document.getElementById("captured-photo");
+    const btnCapture = document.getElementById("btn-capture");
+    const btnRetake = document.getElementById("btn-retake");
+
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const now = new Date();
+    const tsText = `${now.toLocaleDateString("vi-VN")} ${now.toLocaleTimeString("vi-VN")}`;
+    ctx.fillStyle = "rgba(15, 23, 42, 0.75)";
+    ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 15px Segoe UI, sans-serif";
+    ctx.fillText(`📍 GIẢNG VIÊN CHECK-IN | ${activeTarget.name} | ${tsText}`, 12, canvas.height - 14);
+
+    capturedPhotoData = canvas.toDataURL("image/jpeg", 0.85);
+    capturedImg.src = capturedPhotoData;
+    capturedImg.style.display = "block";
+    video.style.display = "none";
+    btnCapture.style.display = "none";
+    btnRetake.style.display = "inline-flex";
+
+    stopCamera();
+}
+
+function retakePhoto() {
+    capturedPhotoData = null;
+    document.getElementById("captured-photo").style.display = "none";
+    document.getElementById("btn-retake").style.display = "none";
+    const guide = document.getElementById("camera-permission-guide");
+    if (guide) guide.style.display = "none";
+    startCamera();
+}
+
+// ─── CHỤP BẰNG APP MÁY ẢNH GỐC / TẢI ẢNH MINH CHỨNG ─────────────────────────
+function triggerFileInput() {
+    const fileInput = document.getElementById("camera-file-input");
+    if (fileInput) fileInput.click();
+}
+
+function handleFileInput(input) {
+    if (!input || !input.files || !input.files[0]) return;
+    const file = input.files[0];
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.getElementById("camera-canvas");
+            const maxDim = 1280;
+            let width = img.width;
+            let height = img.height;
+            if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                    height = Math.round((height * maxDim) / width);
+                    width = maxDim;
+                } else {
+                    width = Math.round((width * maxDim) / height);
+                    height = maxDim;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const now = new Date();
+            const tsText = `${now.toLocaleDateString("vi-VN")} ${now.toLocaleTimeString("vi-VN")}`;
+            ctx.fillStyle = "rgba(15, 23, 42, 0.75)";
+            ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+            ctx.fillStyle = "#38bdf8";
+            ctx.font = "bold 15px Segoe UI, sans-serif";
+            ctx.fillText(`📍 GIẢNG VIÊN CHECK-IN | ${activeTarget.name} | ${tsText}`, 12, canvas.height - 14);
+
+            capturedPhotoData = canvas.toDataURL("image/jpeg", 0.85);
+
+            const capturedImg = document.getElementById("captured-photo");
+            capturedImg.src = capturedPhotoData;
+            capturedImg.style.display = "block";
+
+            const video = document.getElementById("camera-preview");
+            if (video) video.style.display = "none";
+            const placeholder = document.getElementById("camera-placeholder");
+            if (placeholder) placeholder.style.display = "none";
+            const btnCapture = document.getElementById("btn-capture");
+            if (btnCapture) btnCapture.style.display = "none";
+            const btnRetake = document.getElementById("btn-retake");
+            if (btnRetake) btnRetake.style.display = "inline-flex";
+            const guide = document.getElementById("camera-permission-guide");
+            if (guide) guide.style.display = "none";
+
+            stopCamera();
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+// ─── THỰC HIỆN CHECK-IN CHO GIẢNG VIÊN (GIỐNG SINH VIÊN) ─────────────────────
+async function triggerCheckIn(isMockMode = false) {
     const btn = document.getElementById("btn-checkin");
     const statusBox = document.getElementById("status-box");
-    
-    if (!navigator.geolocation) {
-        showStatus("Trình duyệt không hỗ trợ Geolocation (định vị GPS).", false);
+
+    // Lấy thông tin nhập nếu là khách chưa đăng nhập
+    const teacherIdInput = document.getElementById("input-teacher-id");
+    const teacherNameInput = document.getElementById("input-teacher-name");
+    const teacherId = teacherIdInput ? teacherIdInput.value.trim() : "";
+    const teacherName = teacherNameInput ? teacherNameInput.value.trim() : "";
+
+    if (teacherIdInput && !teacherId) {
+        showStatus("Vui lòng nhập Mã Giảng viên / Tài khoản trước khi điểm danh.", false);
+        teacherIdInput.focus();
         return;
     }
 
     btn.disabled = true;
-    btn.innerText = "⏳ Đang lấy tín hiệu GPS...";
     statusBox.style.display = "none";
 
+    const cameraToggle = document.getElementById("toggle-camera");
+    if (cameraToggle && cameraToggle.checked && !capturedPhotoData && cameraStream) {
+        capturePhoto();
+    }
+
+    if (isMockMode) {
+        btn.innerText = "🧪 Đang thực hiện test check-in...";
+        await executeCheckInRequest(activeTarget.latitude, activeTarget.longitude, 5.0, teacherId, teacherName);
+        btn.disabled = false;
+        btn.innerText = "📍 BẮT ĐẦU ĐIỂM DANH GPS";
+        return;
+    }
+
+    if (!navigator.geolocation) {
+        showStatus("Trình duyệt không hỗ trợ Geolocation (định vị GPS).", false);
+        btn.disabled = false;
+        return;
+    }
+
+    btn.innerText = "⏳ Đang dò sóng GPS...";
+    showStatus("📡 Đang lấy tọa độ GPS từ thiết bị của bạn...", true);
+
+    // Lần 1: High accuracy
     navigator.geolocation.getCurrentPosition(
         async (pos) => {
-            btn.innerText = "📡 Đang gửi tọa độ lên máy chủ...";
-            const payload = {
-                latitude: pos.coords.latitude,
-                longitude: pos.coords.longitude,
-                accuracy: pos.coords.accuracy
-            };
-
-            try {
-                const response = await fetch(CHECK_IN_API_URL, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await response.json();
-                const userLoc = data.user_location || {};
-                const accuracyMeters = userLoc.accuracy_meters != null
-                    ? `±${Math.round(userLoc.accuracy_meters)}m`
-                    : (pos.coords.accuracy ? `±${Math.round(pos.coords.accuracy)}m` : "Không xác định");
-                
-                const mapsUrl = userLoc.maps_url || `https://www.google.com/maps?q=${payload.latitude},${payload.longitude}`;
-
-                if (response.ok && data.success) {
-                    showStatus(
-                        `<b>✅ ${data.message}</b><br>` +
-                        `Khoảng cách: <b>${data.distance_meters}m</b><br>` +
-                        `Độ chính xác GPS: ${accuracyMeters}<br>` +
-                        (data.record_id ? `Mã bản ghi: #${data.record_id}<br>` : "") +
-                        `<a class="map-link" href="${mapsUrl}" target="_blank" rel="noopener noreferrer">🗺️ Xem vị trí của bạn trên Google Maps</a>`,
-                        true
-                    );
-                } else {
-                    const errMsg = data.message || data.error || "Điểm danh không thành công.";
-                    const distStr = data.distance_meters != null ? `${data.distance_meters}m` : "N/A";
-                    showStatus(
-                        `<b>❌ ${errMsg}</b><br>` +
-                        `Khoảng cách đo được: ${distStr}<br>` +
-                        `Độ chính xác GPS: ${accuracyMeters}<br>` +
-                        `<a class="map-link" href="${mapsUrl}" target="_blank" rel="noopener noreferrer">🗺️ Xem vị trí của bạn trên Google Maps</a>`,
-                        false
-                    );
-                }
-            } catch (err) {
-                showStatus("Lỗi kết nối máy chủ: " + err.message, false);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "📍 BẮT ĐẦU CHECK-IN";
-            }
-        },
-        (err) => {
+            btn.innerText = "📡 Đang gửi dữ liệu lên máy chủ...";
+            await executeCheckInRequest(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, teacherId, teacherName);
             btn.disabled = false;
-            btn.innerText = "📍 BẮT ĐẦU CHECK-IN";
-            let msg = "Lỗi GPS: ";
-            if (err.code === 1) msg += "Bạn đã từ chối cấp quyền truy cập vị trí trên trình duyệt.";
-            else if (err.code === 2) msg += "Không lấy được vị trí GPS thiết bị.";
-            else msg += "Hết thời gian chờ phản hồi GPS.";
-            showStatus(msg, false);
+            btn.innerText = "📍 BẮT ĐẦU ĐIỂM DANH GPS";
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        (errHigh) => {
+            console.warn("High accuracy GPS failed, falling back to standard accuracy...", errHigh);
+            btn.innerText = "⏳ Đang thử lại với độ chính xác chuẩn...";
+            // Lần 2: Standard accuracy fallback
+            navigator.geolocation.getCurrentPosition(
+                async (pos) => {
+                    btn.innerText = "📡 Đang gửi dữ liệu lên máy chủ...";
+                    await executeCheckInRequest(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, teacherId, teacherName);
+                    btn.disabled = false;
+                    btn.innerText = "📍 BẮT ĐẦU ĐIỂM DANH GPS";
+                },
+                (errLow) => {
+                    btn.disabled = false;
+                    btn.innerText = "📍 BẮT ĐẦU ĐIỂM DANH GPS";
+                    handleGpsError(errLow);
+                },
+                { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+            );
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
     );
+}
+
+async function executeCheckInRequest(userLat, userLon, accuracy, teacherId = "", teacherName = "") {
+    const payload = {
+        latitude: userLat,
+        longitude: userLon,
+        accuracy: accuracy || null,
+        target_latitude: activeTarget.latitude,
+        target_longitude: activeTarget.longitude,
+        max_radius: activeTarget.radius,
+        location_id: activeTarget.locationId,
+        teacher_id: teacherId,
+        teacher_name: teacherName,
+        photo: capturedPhotoData || null,
+    };
+
+    try {
+        const response = await fetch(CHECK_IN_API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": CSRF_TOKEN,
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        const userLoc = data.user_location || {};
+        const accuracyMeters = userLoc.accuracy_meters != null
+            ? `±${Math.round(userLoc.accuracy_meters)}m`
+            : (accuracy ? `±${Math.round(accuracy)}m` : "Không xác định");
+
+        const mapsUrl = userLoc.maps_url || `https://www.google.com/maps?q=${payload.latitude},${payload.longitude}`;
+        const photoNote = data.has_photo ? `📸 <b>Ảnh xác thực đã lưu thành công</b><br>` : "";
+
+        if (response.ok && data.success) {
+            showStatus(
+                `<b>✅ ${data.message}</b><br>` +
+                `Địa điểm mốc: <b>${activeTarget.name}</b><br>` +
+                `Khoảng cách: <b>${data.distance_meters}m</b> (Bán kính cho phép: ${data.allowed_radius_meters || activeTarget.radius}m)<br>` +
+                `Độ chính xác GPS: ${accuracyMeters}<br>` +
+                photoNote +
+                (data.record_id ? `Mã bản ghi CSDL: <b>#${data.record_id}</b><br>` : "") +
+                `<a class="map-link" href="${mapsUrl}" target="_blank" rel="noopener noreferrer">🗺️ Xem vị trí của bạn trên Google Maps</a>`,
+                true
+            );
+        } else {
+            const errMsg = data.message || data.error || "Điểm danh không thành công.";
+            const distStr = data.distance_meters != null ? `${data.distance_meters}m` : "N/A";
+            showStatus(
+                `<b>❌ ${errMsg}</b><br>` +
+                `Địa điểm mốc: <b>${activeTarget.name}</b><br>` +
+                `Khoảng cách đo được: <b>${distStr}</b> (Bán kính cho phép: ${activeTarget.radius}m)<br>` +
+                `Độ chính xác GPS: ${accuracyMeters}<br>` +
+                photoNote +
+                (data.record_id ? `Mã bản ghi: #${data.record_id}<br>` : "") +
+                `<div style="margin-top: 6px; font-size: 12px; color: #fca5a5;">
+                    💡 <b>Gợi ý:</b> Thầy/Cô cần có mặt trong bán kính ${activeTarget.radius}m của mốc <b>${escapeHtml(activeTarget.name)}</b> để hoàn thành điểm danh.
+                </div>` +
+                `<a class="map-link" href="${mapsUrl}" target="_blank" rel="noopener noreferrer">🗺️ Xem vị trí của bạn trên Google Maps</a>`,
+                false
+            );
+        }
+    } catch (err) {
+        showStatus("Lỗi kết nối máy chủ: " + err.message, false);
+    }
+}
+
+function handleGpsError(err) {
+    let msg = "<b>Lỗi định vị GPS:</b> ";
+    if (err.code === 1) {
+        msg += "Bạn đã từ chối quyền vị trí. Nhấn vào ổ khóa 🔒 trên thanh địa chỉ để bật 'Vị trí'.";
+    } else if (err.code === 2) {
+        msg += "Không lấy được vị trí GPS từ thiết bị.";
+    } else {
+        msg += "Hết thời gian chờ phản hồi GPS từ thiết bị.";
+    }
+    msg += `<br><br><span style="font-size: 12px; color: #38bdf8;">💡 Bạn có thể bấm <b>"🧪 Thử nghiệm check-in khớp mốc"</b> ở dưới để test chức năng lưu CSDL và Camera.</span>`;
+    showStatus(msg, false);
 }
 
 function showStatus(html, isSuccess) {
@@ -210,6 +1648,123 @@ function showStatus(html, isSuccess) {
     box.className = isSuccess ? "success" : "error";
     box.innerHTML = html;
 }
+
+// ─── XÓA LỊCH SỬ ĐIỂM DANH (ADMIN / GIẢNG VIÊN) ──────────────────────────────
+function toggleConfirmDeleteButton(isChecked) {
+    const btn = document.getElementById("btn-confirm-delete");
+    if (!btn) return;
+    if (isChecked) {
+        btn.disabled = false;
+        btn.style.opacity = "1";
+        btn.style.cursor = "pointer";
+        btn.style.background = "#dc2626";
+    } else {
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+        btn.style.cursor = "not-allowed";
+        btn.style.background = "#7f1d1d";
+    }
+}
+
+function openClearHistoryModal() {
+    const modal = document.getElementById("clear-history-modal");
+    if (modal) {
+        modal.style.display = "flex";
+        modal.classList.add("active");
+    }
+
+    // Đưa checkbox và nút về trạng thái bảo vệ an toàn
+    const chk = document.getElementById("confirm-clear-checkbox");
+    if (chk) chk.checked = false;
+    toggleConfirmDeleteButton(false);
+
+    // Hiển thị Banner Cảnh Báo màu vàng/cam nổi bật phía trên
+    showBannerAnnouncement({
+        type: "warning",
+        icon: "⚠️",
+        title: "CẢNH BÁO: BẠN ĐANG MỞ THAO TÁC XÓA LỊCH SỬ ĐIỂM DANH!",
+        body: "Hành động này sẽ xóa toàn bộ bản ghi điểm danh và giải phóng các file ảnh minh chứng trên máy chủ. Vui lòng đọc kỹ thông tin trong hộp thoại cảnh báo trước khi bấm xác nhận.",
+        subtext: "⚠️ Chú ý: File Excel (.xlsx) tải về sau khi xóa sẽ hoàn toàn sạch/trống dữ liệu cũ.",
+    });
+}
+
+function closeClearHistoryModal() {
+    const modal = document.getElementById("clear-history-modal");
+    if (modal) {
+        modal.style.display = "none";
+        modal.classList.remove("active");
+    }
+
+    // Ẩn banner cảnh báo nếu người dùng hủy bỏ
+    dismissAnnouncement();
+}
+
+async function executeClearHistory() {
+    const btn = document.getElementById("btn-confirm-delete");
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = "⏳ Đang xóa dữ liệu & dọn dẹp ảnh...";
+    }
+    try {
+        const res = await fetch("{% url 'check_in:clear_checkin_history_api' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": CSRF_TOKEN,
+            },
+            body: JSON.stringify({}),
+        });
+        const data = await res.json();
+        closeClearHistoryModal();
+
+        if (res.ok && data.success) {
+            // Thông báo thành công rực rỡ trên Banner & Status Box
+            showBannerAnnouncement({
+                type: "success",
+                icon: "🗑️",
+                title: "ĐÃ XÓA TOÀN BỘ LỊCH SỬ ĐIỂM DANH THÀNH CÔNG!",
+                body: `Đã dọn dẹp thành công <b>${data.deleted_count}</b> bản ghi điểm danh và toàn bộ file ảnh minh chứng.`,
+                subtext: "✓ Dữ liệu điểm danh đã được làm sạch. File Excel (.xlsx) tải về bây giờ sẽ hoàn toàn trống.",
+            });
+            showStatus(
+                `<b>✅ THÀNH CÔNG:</b> ${escapeHtml(data.message)}<br>` +
+                `<span style="color: #38bdf8; font-size: 12.5px;">Toàn bộ bản ghi CSDL và ảnh chụp đã được dọn sạch. Bạn có thể bấm "Xuất Excel" để kiểm tra file trống.</span>`,
+                true
+            );
+        } else {
+            // Thông báo lỗi nếu thất bại hoặc bị từ chối quyền (403)
+            const errMsg = data.error || data.message || "Không thể thực hiện xóa dữ liệu.";
+            showBannerAnnouncement({
+                type: "danger",
+                icon: "❌",
+                title: "KHÔNG THỂ XÓA LỊCH SỬ ĐIỂM DANH!",
+                body: escapeHtml(errMsg),
+                subtext: "Vui lòng kiểm tra quyền Admin hoặc đăng nhập lại tài khoản Giảng viên.",
+            });
+            showStatus(`<b>❌ LỖI KHI XÓA:</b> ${escapeHtml(errMsg)}`, false);
+        }
+    } catch (err) {
+        const connErr = "Lỗi kết nối máy chủ: " + err.message;
+        showBannerAnnouncement({
+            type: "danger",
+            icon: "❌",
+            title: "LỖI KẾT NỐI MÁY CHỦ!",
+            body: escapeHtml(connErr),
+            subtext: "Vui lòng kiểm tra kết nối mạng hoặc thử lại sau.",
+        });
+        showStatus("<b>❌ LỖI KẾT NỐI:</b> " + escapeHtml(connErr), false);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = "🗑️ Xác nhận xóa vĩnh viễn";
+        }
+    }
+}
+
+// ─── KHỞI TẠO BAN ĐẦU ────────────────────────────────────────────────────────
+const countEl = document.getElementById("count-all");
+if (countEl) countEl.textContent = locationsData.length;
+updateModalPreview(activeTarget.name, activeTarget.latitude, activeTarget.longitude, activeTarget.radius, "");
 </script>
 
 </body>

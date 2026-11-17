@@ -1,12 +1,15 @@
 import json
 import logging
+import base64
 from django.shortcuts import render
 from django.http import HttpRequest, JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+from django.core.files.base import ContentFile
 from .check_in_location import verify_check_in
 from .models import CheckInRecord
+from check_in.hust_data import get_current_active_location
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +22,15 @@ TARGET_LOCATION_NAME = getattr(settings, "CHECK_IN_TARGET_NAME", "Đại học B
 
 def student_check_in_page_view(request: HttpRequest):
     """
-    Giao diện điểm danh dành riêng cho Sinh viên.
-    Tuyệt đối KHÔNG có chức năng xuất hoặc tải về cơ sở dữ liệu (Excel/CSV).
+    Giao diện điểm danh dành riêng cho Sinh viên — GPS + Camera.
+    Tự động đồng bộ với địa điểm mốc do Giảng viên vừa chọn.
     """
+    active_loc = get_current_active_location()
+    target_lat = active_loc.latitude if active_loc else DEFAULT_TARGET_LATITUDE
+    target_lon = active_loc.longitude if active_loc else DEFAULT_TARGET_LONGITUDE
+    max_radius = active_loc.default_radius_meters if active_loc else DEFAULT_MAX_RADIUS_METERS
+    target_name = active_loc.name if active_loc else TARGET_LOCATION_NAME
+
     user = request.user if request.user.is_authenticated else None
     student_info = {
         "is_authenticated": request.user.is_authenticated,
@@ -32,10 +41,10 @@ def student_check_in_page_view(request: HttpRequest):
     }
 
     context = {
-        "target_latitude": DEFAULT_TARGET_LATITUDE,
-        "target_longitude": DEFAULT_TARGET_LONGITUDE,
-        "max_radius_meters": DEFAULT_MAX_RADIUS_METERS,
-        "target_location_name": TARGET_LOCATION_NAME,
+        "target_latitude": target_lat,
+        "target_longitude": target_lon,
+        "max_radius_meters": max_radius,
+        "target_location_name": target_name,
         "student_info": student_info,
     }
     return render(request, "check_in_for_student/interface.html", context)
@@ -45,10 +54,14 @@ def student_check_in_page_view(request: HttpRequest):
 @require_http_methods(["POST"])
 def student_check_in_api_view(request: HttpRequest) -> JsonResponse:
     """
-    API tiếp nhận tọa độ GPS từ trình duyệt sinh viên để xác thực điểm danh.
-    Bản ghi được lưu vào cơ sở dữ liệu hệ thống, chỉ trả về kết quả cá nhân
-    của chính sinh viên đó và KHÔNG phát hành cơ sở dữ liệu.
+    API tiếp nhận tọa độ GPS + ảnh camera từ trình duyệt sinh viên.
+    Tự động xác thực với địa điểm mốc do Giảng viên kích hoạt.
     """
+    active_loc = get_current_active_location()
+    target_lat = active_loc.latitude if active_loc else DEFAULT_TARGET_LATITUDE
+    target_lon = active_loc.longitude if active_loc else DEFAULT_TARGET_LONGITUDE
+    max_radius = active_loc.default_radius_meters if active_loc else DEFAULT_MAX_RADIUS_METERS
+
     # 1. Parse JSON body
     try:
         body_text = request.body.decode("utf-8").strip()
@@ -83,15 +96,20 @@ def student_check_in_api_view(request: HttpRequest) -> JsonResponse:
         user_lon = float(lon_val)
 
         accuracy_raw = payload.get("accuracy")
-        accuracy = float(accuracy_raw) if accuracy_raw is not None else None
+        accuracy = None
+        if accuracy_raw not in (None, ""):
+            try:
+                accuracy = float(accuracy_raw)
+            except (ValueError, TypeError):
+                accuracy = None
 
         # Verify coordinates using check_in_location
         result = verify_check_in(
             user_latitude=user_lat,
             user_longitude=user_lon,
-            target_latitude=DEFAULT_TARGET_LATITUDE,
-            target_longitude=DEFAULT_TARGET_LONGITUDE,
-            max_radius_meters=DEFAULT_MAX_RADIUS_METERS,
+            target_latitude=target_lat,
+            target_longitude=target_lon,
+            max_radius_meters=max_radius,
             accuracy_meters=accuracy,
             allow_accuracy_buffer=True,
         )
@@ -107,9 +125,26 @@ def student_check_in_api_view(request: HttpRequest) -> JsonResponse:
             status=500,
         )
 
-    # 3. Lưu bản ghi vào cơ sở dữ liệu
+    # 3. Process camera photo (base64 encoded)
+    photo_file = None
+    photo_b64 = payload.get("photo")
+    if photo_b64 and isinstance(photo_b64, str):
+        try:
+            if "," in photo_b64:
+                photo_b64 = photo_b64.split(",", 1)[1]
+            photo_bytes = base64.b64decode(photo_b64)
+            if len(photo_bytes) > 0:
+                from datetime import datetime
+                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+                username = request.user.username if request.user.is_authenticated else "guest"
+                filename = f"student_{username}_{ts}.jpg"
+                photo_file = ContentFile(photo_bytes, name=filename)
+        except Exception as e:
+            logger.warning(f"Không thể decode ảnh camera sinh viên: {e}")
+
+    # 4. Lưu bản ghi vào cơ sở dữ liệu
     user = request.user if request.user.is_authenticated else None
-    
+
     # Gắn thêm định danh sinh viên vào message nếu là khách nhập tay
     guest_mssv = str(payload.get("student_id", "")).strip()
     guest_name = str(payload.get("student_name", "")).strip()
@@ -131,6 +166,7 @@ def student_check_in_api_view(request: HttpRequest) -> JsonResponse:
             allowed_radius_meters=DEFAULT_MAX_RADIUS_METERS,
             is_valid=result.is_valid,
             message=final_message,
+            photo=photo_file,
         )
         record_id = record.id
     except Exception as e:
@@ -139,6 +175,7 @@ def student_check_in_api_view(request: HttpRequest) -> JsonResponse:
 
     response_data = result.to_dict()
     response_data["record_id"] = record_id
+    response_data["has_photo"] = photo_file is not None
     response_data["student_info"] = {
         "is_authenticated": user is not None,
         "student_id": getattr(user, "student_id", None) or guest_mssv or None,
@@ -154,7 +191,6 @@ def student_check_in_api_view(request: HttpRequest) -> JsonResponse:
 def student_my_status_api_view(request: HttpRequest) -> JsonResponse:
     """
     API cho phép sinh viên đã đăng nhập tra cứu bản ghi điểm danh gần nhất CỦA CHÍNH MÌNH.
-    Tuyệt đối không tiết lộ thông tin của các sinh viên khác hay cơ sở dữ liệu.
     """
     if not request.user.is_authenticated:
         return JsonResponse(
@@ -187,6 +223,7 @@ def student_my_status_api_view(request: HttpRequest) -> JsonResponse:
                 "distance_meters": round(latest.distance_meters, 1) if latest.distance_meters is not None else None,
                 "created_at": latest.created_at.strftime("%H:%M:%S %d/%m/%Y") if latest.created_at else None,
                 "message": latest.message,
+                "has_photo": bool(latest.photo),
             },
         }
     )

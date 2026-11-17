@@ -1,27 +1,25 @@
-<!DOCTYPE html>
+{% load l10n %}<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Điểm Danh Sinh Viên - CLB o365</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #0f172a;
             color: #f8fafc;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 100vh;
             margin: 0;
             padding: 20px;
         }
         .container {
             background-color: #1e293b;
-            padding: 30px;
+            padding: 28px;
             border-radius: 16px;
             box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55);
             max-width: 460px;
@@ -52,6 +50,8 @@
             margin-bottom: 16px;
             line-height: 1.4;
         }
+
+        /* ─── Info cards ─── */
         .info-card {
             background-color: #0f172a;
             border: 1px solid #334155;
@@ -62,17 +62,15 @@
             color: #94a3b8;
             text-align: left;
         }
-        .info-card strong {
-            color: #e2e8f0;
-        }
+        .info-card strong { color: #e2e8f0; }
         .info-row {
             display: flex;
             justify-content: space-between;
             margin-bottom: 6px;
         }
-        .info-row:last-child {
-            margin-bottom: 0;
-        }
+        .info-row:last-child { margin-bottom: 0; }
+
+        /* ─── Inputs ─── */
         .input-group {
             margin: 12px 0;
             text-align: left;
@@ -95,9 +93,120 @@
             outline: none;
             transition: border-color 0.2s;
         }
-        .input-group input:focus {
-            border-color: #38bdf8;
+        .input-group input:focus { border-color: #38bdf8; }
+
+        /* ─── Camera section ─── */
+        .camera-section {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 12px;
+            margin: 12px 0;
+            text-align: center;
         }
+        #camera-preview {
+            width: 100%;
+            max-height: 280px;
+            border-radius: 8px;
+            background: #020617;
+            display: none;
+        }
+        #camera-canvas { display: none; }
+        #captured-photo {
+            width: 100%;
+            max-height: 280px;
+            border-radius: 8px;
+            border: 2px solid #22c55e;
+            display: none;
+            margin-top: 8px;
+        }
+        .camera-placeholder {
+            color: #64748b;
+            padding: 24px 16px;
+            font-size: 13px;
+        }
+        .camera-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .permission-guide-box {
+            background: rgba(245, 158, 11, 0.12);
+            border: 1.5px solid #f59e0b;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-top: 10px;
+            text-align: left;
+            font-size: 12px;
+            line-height: 1.55;
+            color: #fde68a;
+            display: none;
+        }
+        .permission-guide-box strong { color: #fff; }
+        .btn-file-upload {
+            background: #334155;
+            color: #f8fafc;
+            border: 1px solid #475569;
+            font-size: 12.5px;
+            padding: 9px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-file-upload:hover { background: #475569; }
+
+        /* ─── Toggle switch ─── */
+        .toggle-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin: 10px 0;
+        }
+        .toggle-label { font-size: 13px; color: #cbd5e1; }
+        .toggle-switch {
+            position: relative; width: 44px; height: 24px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute; cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #475569;
+            border-radius: 24px;
+            transition: 0.3s;
+        }
+        .toggle-slider:before {
+            content: "";
+            position: absolute;
+            height: 18px; width: 18px;
+            left: 3px; bottom: 3px;
+            background-color: #f8fafc;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        .toggle-switch input:checked + .toggle-slider { background-color: #22c55e; }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+        /* ─── Buttons ─── */
+        .btn {
+            border: none;
+            padding: 12px 18px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-capture { background: #dc2626; color: #fff; }
+        .btn-capture:hover { background: #b91c1c; }
+        .btn-retake { background: #334155; color: #f8fafc; display: none; }
+
         button.btn-checkin {
             background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
             color: white;
@@ -122,6 +231,8 @@
             transform: none;
             cursor: not-allowed;
         }
+
+        /* ─── Status box ─── */
         #status-box {
             margin-top: 18px;
             padding: 14px 16px;
@@ -132,16 +243,8 @@
             line-height: 1.6;
             word-break: break-word;
         }
-        .success {
-            background-color: #064e3b;
-            color: #6ee7b7;
-            border: 1px solid #059669;
-        }
-        .error {
-            background-color: #7f1d1d;
-            color: #fca5a5;
-            border: 1px solid #dc2626;
-        }
+        .success { background-color: #064e3b; color: #6ee7b7; border: 1px solid #059669; }
+        .error { background-color: #7f1d1d; color: #fca5a5; border: 1px solid #dc2626; }
         .map-link {
             display: inline-block;
             margin-top: 8px;
@@ -161,9 +264,7 @@
             text-align: left;
             line-height: 1.45;
         }
-        .privacy-notice strong {
-            color: #bfdbfe;
-        }
+        .privacy-notice strong { color: #bfdbfe; }
         .back-link {
             display: inline-block;
             margin-top: 20px;
@@ -172,9 +273,7 @@
             font-size: 13px;
             transition: color 0.2s;
         }
-        .back-link:hover {
-            color: #94a3b8;
-        }
+        .back-link:hover { color: #94a3b8; }
     </style>
 </head>
 <body>
@@ -182,7 +281,7 @@
 <div class="container">
     <div class="badge-student">🎓 CỔNG ĐIỂM DANH SINH VIÊN</div>
     <h2>Xác Nhận Có Mặt</h2>
-    <p class="subtitle">Hệ thống sử dụng định vị GPS từ điện thoại/máy tính của bạn để xác thực có mặt tại phòng học.</p>
+    <p class="subtitle">Hệ thống sử dụng GPS + Camera từ điện thoại/máy tính để xác thực điểm danh tại phòng học.</p>
 
     <!-- Thông tin học viên -->
     <div class="info-card">
@@ -237,15 +336,70 @@
         </div>
     </div>
 
+    <!-- Camera toggle -->
+    <div class="toggle-row">
+        <span class="toggle-label">📸 Chụp ảnh xác minh có mặt</span>
+        <label class="toggle-switch">
+            <input type="checkbox" id="toggle-camera" onchange="toggleCamera(this.checked)">
+            <span class="toggle-slider"></span>
+        </label>
+    </div>
+
+    <!-- Camera section -->
+    <div class="camera-section" id="camera-section" style="display: none;">
+        <video id="camera-preview" autoplay playsinline muted></video>
+        <canvas id="camera-canvas"></canvas>
+        <img id="captured-photo" alt="Ảnh chụp">
+        <div class="camera-placeholder" id="camera-placeholder">
+            📷 Đang kết nối camera...
+        </div>
+
+        <!-- Khung hướng dẫn cấp quyền camera (web / app) -->
+        <div class="permission-guide-box" id="camera-permission-guide">
+            <div style="display: flex; align-items: flex-start; gap: 8px;">
+                <span style="font-size: 18px;">🔒</span>
+                <div>
+                    <strong>Quyền truy cập Camera chưa sẵn sàng:</strong>
+                    <div style="margin-top: 4px;" id="camera-error-detail">
+                        Trình duyệt hoặc ứng dụng chưa cấp quyền truy cập Camera.
+                    </div>
+                    <ul style="margin: 6px 0 8px 18px; padding: 0;">
+                        <li><b>Trên máy tính:</b> Nhấn vào biểu tượng 🔒 hoặc 📷 trên thanh địa chỉ trình duyệt $\rightarrow$ Chọn <i>Cho phép (Allow)</i> $\rightarrow$ Bấm <i>Thử lại Camera</i>.</li>
+                        <li><b>Trên điện thoại / App:</b> Vào <i>Cài đặt máy $\rightarrow$ Ứng dụng $\rightarrow$ Quyền $\rightarrow$ Camera $\rightarrow$ Cho phép khi dùng</i>.</li>
+                        <li><b>Chụp trực tiếp:</b> Bạn có thể bấm nút <b>"📷 Chụp bằng Máy ảnh điện thoại / Tải ảnh"</b> bên dưới để mở app camera máy mà không cần cấp quyền trình duyệt!</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="camera-controls">
+            <button class="btn btn-capture" id="btn-capture" onclick="capturePhoto()" style="display:none;">📸 Chụp ảnh</button>
+            <button class="btn btn-retake" id="btn-retake" onclick="retakePhoto()">🔄 Chụp lại</button>
+            <button class="btn btn-file-upload" id="btn-file-upload" type="button" onclick="triggerFileInput()">
+                📷 Chụp bằng Máy ảnh điện thoại / Tải ảnh
+            </button>
+        </div>
+
+        <!-- Input file ẩn hỗ trợ mở camera gốc của máy (PWA, mobile web, Android, iOS) -->
+        <input type="file" id="camera-file-input" accept="image/*" capture="user" style="display: none;" onchange="handleFileInput(this)">
+    </div>
+
     <!-- Nút thực hiện điểm danh -->
     <button id="btn-checkin" class="btn-checkin" onclick="triggerStudentCheckIn()">📍 BẮT ĐẦU ĐIỂM DANH GPS</button>
+
+    <!-- Chế độ test nếu GPS thiết bị desktop bị chặn -->
+    <div style="margin-top: 8px; text-align: center;">
+        <button id="btn-mock-test" onclick="triggerStudentCheckIn(true)" style="background: none; border: none; color: #64748b; font-size: 11.5px; cursor: pointer; text-decoration: underline;">
+            🧪 Thử nghiệm điểm danh khớp mốc (Test Mode)
+        </button>
+    </div>
 
     <!-- Khung thông báo kết quả -->
     <div id="status-box"></div>
 
-    <!-- Thông báo bảo mật cơ sở dữ liệu -->
+    <!-- Thông báo bảo mật -->
     <div class="privacy-notice">
-        🛡️ <strong>Chính sách bảo mật:</strong> Dữ liệu điểm danh được mã hóa và gửi trực tiếp về máy chủ để Giảng viên tổng hợp. Để bảo vệ dữ liệu cá nhân, sinh viên không thể tải về hoặc trích xuất cơ sở dữ liệu điểm danh (Excel/CSV).
+        🛡️ <strong>Chính sách bảo mật:</strong> Dữ liệu điểm danh & ảnh chụp được gửi trực tiếp về máy chủ để Giảng viên tổng hợp. Sinh viên không thể tải về hoặc trích xuất cơ sở dữ liệu điểm danh.
     </div>
 
     <div>
@@ -255,8 +409,218 @@
 
 <script>
 const STUDENT_API_URL = "{% url 'check_in_for_student:student_check_in_api' %}";
+const CSRF_TOKEN = "{{ csrf_token }}";
 
-function triggerStudentCheckIn() {
+// Camera state
+let cameraStream = null;
+let capturedPhotoData = null;
+
+// ─── Camera ──────────────────────────────────────────────────────────────────
+function toggleCamera(enabled) {
+    const section = document.getElementById('camera-section');
+    if (enabled) {
+        section.style.display = 'block';
+        startCamera();
+    } else {
+        section.style.display = 'none';
+        stopCamera();
+        capturedPhotoData = null;
+        const guide = document.getElementById('camera-permission-guide');
+        if (guide) guide.style.display = 'none';
+    }
+}
+
+async function getMediaStream() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("NOT_SUPPORTED");
+    }
+    // Lần 1: Camera trước độ phân giải chuẩn
+    try {
+        return await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: "user" }, width: { ideal: 1280 }, height: { ideal: 720 } }
+        });
+    } catch(e1) {
+        console.warn("Attempt 1 camera constraint failed:", e1);
+    }
+    // Lần 2: Thử camera với facingMode môi trường
+    try {
+        return await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: "environment" } }
+        });
+    } catch(e2) {
+        console.warn("Attempt 2 camera constraint failed:", e2);
+    }
+    // Lần 3: Mọi camera mặc định
+    return await navigator.mediaDevices.getUserMedia({ video: true });
+}
+
+async function startCamera() {
+    const video = document.getElementById('camera-preview');
+    const placeholder = document.getElementById('camera-placeholder');
+    const btnCapture = document.getElementById('btn-capture');
+    const capturedImg = document.getElementById('captured-photo');
+    const btnRetake = document.getElementById('btn-retake');
+    const guide = document.getElementById('camera-permission-guide');
+
+    capturedImg.style.display = 'none';
+    btnRetake.style.display = 'none';
+    if (guide) guide.style.display = 'none';
+
+    placeholder.textContent = "📷 Đang kết nối camera...";
+    placeholder.style.display = 'block';
+    video.style.display = 'none';
+
+    try {
+        cameraStream = await getMediaStream();
+        video.srcObject = cameraStream;
+        video.style.display = 'block';
+        placeholder.style.display = 'none';
+        btnCapture.style.display = 'inline-flex';
+    } catch (err) {
+        video.style.display = 'none';
+        btnCapture.style.display = 'none';
+        placeholder.style.display = 'none';
+        if (guide) {
+            guide.style.display = 'block';
+            const detail = document.getElementById('camera-error-detail');
+            if (err.message === "NOT_SUPPORTED") {
+                detail.textContent = "Trình duyệt yêu cầu kết nối bảo mật (HTTPS hoặc localhost) để mở camera trực tiếp. Vui lòng bấm nút 'Chụp bằng Máy ảnh điện thoại / Tải ảnh' bên dưới.";
+            } else if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                detail.textContent = "Bạn đã từ chối hoặc chưa cấp quyền truy cập Camera trên thiết bị / trình duyệt.";
+            } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                detail.textContent = "Không tìm thấy thiết bị camera được kết nối trên máy tính / điện thoại.";
+            } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                detail.textContent = "Camera đang bị ứng dụng khác (Zoom, Teams, v.v.) chiếm dụng.";
+            } else {
+                detail.textContent = "Lỗi kết nối camera: " + (err.message || err.name);
+            }
+        }
+    }
+}
+
+function stopCamera() {
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+    }
+    const video = document.getElementById('camera-preview');
+    if (video) {
+        video.srcObject = null;
+        video.style.display = 'none';
+    }
+    const btnCapture = document.getElementById('btn-capture');
+    if (btnCapture) btnCapture.style.display = 'none';
+    const placeholder = document.getElementById('camera-placeholder');
+    if (placeholder) placeholder.style.display = 'block';
+}
+
+function capturePhoto() {
+    const video = document.getElementById('camera-preview');
+    const canvas = document.getElementById('camera-canvas');
+    const capturedImg = document.getElementById('captured-photo');
+    const btnCapture = document.getElementById('btn-capture');
+    const btnRetake = document.getElementById('btn-retake');
+
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Watermark
+    const now = new Date();
+    const tsText = `${now.toLocaleDateString('vi-VN')} ${now.toLocaleTimeString('vi-VN')}`;
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
+    ctx.fillRect(0, canvas.height - 36, canvas.width, 36);
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 14px Segoe UI, sans-serif';
+    ctx.fillText(`🎓 ĐIỂM DANH SV | ${tsText}`, 10, canvas.height - 12);
+
+    capturedPhotoData = canvas.toDataURL('image/jpeg', 0.85);
+    capturedImg.src = capturedPhotoData;
+    capturedImg.style.display = 'block';
+    video.style.display = 'none';
+    btnCapture.style.display = 'none';
+    btnRetake.style.display = 'inline-flex';
+
+    stopCamera();
+}
+
+function retakePhoto() {
+    capturedPhotoData = null;
+    document.getElementById('captured-photo').style.display = 'none';
+    document.getElementById('btn-retake').style.display = 'none';
+    const guide = document.getElementById('camera-permission-guide');
+    if (guide) guide.style.display = 'none';
+    startCamera();
+}
+
+// ─── CHỤP BẰNG APP MÁY ẢNH GỐC / TẢI ẢNH MINH CHỨNG ─────────────────────────
+function triggerFileInput() {
+    const fileInput = document.getElementById('camera-file-input');
+    if (fileInput) fileInput.click();
+}
+
+function handleFileInput(input) {
+    if (!input || !input.files || !input.files[0]) return;
+    const file = input.files[0];
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.getElementById('camera-canvas');
+            const maxDim = 1280;
+            let width = img.width;
+            let height = img.height;
+            if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                    height = Math.round((height * maxDim) / width);
+                    width = maxDim;
+                } else {
+                    width = Math.round((width * maxDim) / height);
+                    height = maxDim;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const now = new Date();
+            const tsText = `${now.toLocaleDateString('vi-VN')} ${now.toLocaleTimeString('vi-VN')}`;
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
+            ctx.fillRect(0, canvas.height - 36, canvas.width, 36);
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = 'bold 14px Segoe UI, sans-serif';
+            ctx.fillText(`🎓 ĐIỂM DANH SV | ${tsText}`, 10, canvas.height - 12);
+
+            capturedPhotoData = canvas.toDataURL('image/jpeg', 0.85);
+
+            const capturedImg = document.getElementById('captured-photo');
+            capturedImg.src = capturedPhotoData;
+            capturedImg.style.display = 'block';
+
+            const video = document.getElementById('camera-preview');
+            if (video) video.style.display = 'none';
+            const placeholder = document.getElementById('camera-placeholder');
+            if (placeholder) placeholder.style.display = 'none';
+            const btnCapture = document.getElementById('btn-capture');
+            if (btnCapture) btnCapture.style.display = 'none';
+            const btnRetake = document.getElementById('btn-retake');
+            if (btnRetake) btnRetake.style.display = 'inline-flex';
+            const guide = document.getElementById('camera-permission-guide');
+            if (guide) guide.style.display = 'none';
+
+            stopCamera();
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+// ─── Check-in ────────────────────────────────────────────────────────────────
+function triggerStudentCheckIn(isMockMode = false) {
     const btn = document.getElementById("btn-checkin");
     const statusBox = document.getElementById("status-box");
 
@@ -272,84 +636,123 @@ function triggerStudentCheckIn() {
         return;
     }
 
-    if (!navigator.geolocation) {
-        showStatus("Trình duyệt không hỗ trợ Geolocation (định vị GPS). Vui lòng thử trên trình duyệt di động như Chrome hoặc Safari.", false);
-        return;
+    // Tự động chụp ảnh nếu camera đang mở mà chưa nhấn nút Chụp
+    const cameraToggle = document.getElementById("toggle-camera");
+    if (cameraToggle && cameraToggle.checked && !capturedPhotoData && cameraStream) {
+        capturePhoto();
     }
 
     btn.disabled = true;
-    btn.innerText = "⏳ Đang lấy tọa độ GPS...";
     statusBox.style.display = "none";
 
-    navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-            btn.innerText = "📡 Đang gửi dữ liệu lên máy chủ...";
-            const payload = {
-                latitude: pos.coords.latitude,
-                longitude: pos.coords.longitude,
-                accuracy: pos.coords.accuracy,
-                student_id: studentId,
-                student_name: studentName
-            };
+    const sendStudentData = async (pos) => {
+        btn.innerText = "📡 Đang gửi dữ liệu lên máy chủ...";
+        const payload = {
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            accuracy: pos.coords.accuracy,
+            student_id: studentId,
+            student_name: studentName,
+            photo: capturedPhotoData || null,
+        };
 
-            try {
-                const response = await fetch(STUDENT_API_URL, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(payload)
-                });
+        try {
+            const response = await fetch(STUDENT_API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": CSRF_TOKEN,
+                },
+                body: JSON.stringify(payload)
+            });
 
-                const data = await response.json();
-                const userLoc = data.user_location || {};
-                const accuracyMeters = userLoc.accuracy_meters != null
-                    ? `±${Math.round(userLoc.accuracy_meters)}m`
-                    : (pos.coords.accuracy ? `±${Math.round(pos.coords.accuracy)}m` : "Không xác định");
+            const data = await response.json();
+            const userLoc = data.user_location || {};
+            const accuracyMeters = userLoc.accuracy_meters != null
+                ? `±${Math.round(userLoc.accuracy_meters)}m`
+                : (pos.coords.accuracy ? `±${Math.round(pos.coords.accuracy)}m` : "Không xác định");
 
-                const mapsUrl = userLoc.maps_url || `https://www.google.com/maps?q=${payload.latitude},${payload.longitude}`;
+            const mapsUrl = userLoc.maps_url || `https://www.google.com/maps?q=${payload.latitude},${payload.longitude}`;
+            const photoNote = data.has_photo ? `📸 Ảnh xác minh đã được lưu thành công<br>` : "";
 
-                if (response.ok && data.success) {
-                    showStatus(
-                        `<b>✅ ${data.message}</b><br>` +
-                        `Khoảng cách: <b>${data.distance_meters}m</b><br>` +
-                        `Độ chính xác GPS: ${accuracyMeters}<br>` +
-                        (data.record_id ? `Mã bản ghi: #${data.record_id}<br>` : "") +
-                        `<a class="map-link" href="${mapsUrl}" target="_blank" rel="noopener noreferrer">🗺️ Xem vị trí của bạn trên bản đồ</a>`,
-                        true
-                    );
-                } else {
-                    const errMsg = data.message || data.error || "Điểm danh không thành công.";
-                    const distStr = data.distance_meters != null ? `${data.distance_meters}m` : "N/A";
-                    showStatus(
-                        `<b>❌ ${errMsg}</b><br>` +
-                        `Khoảng cách đo được: ${distStr}<br>` +
-                        `Độ chính xác GPS: ${accuracyMeters}<br>` +
-                        `<a class="map-link" href="${mapsUrl}" target="_blank" rel="noopener noreferrer">🗺️ Xem vị trí của bạn trên bản đồ</a>`,
-                        false
-                    );
-                }
-            } catch (err) {
-                showStatus("Lỗi kết nối máy chủ: " + err.message, false);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "📍 BẮT ĐẦU ĐIỂM DANH GPS";
+            if (response.ok && data.success) {
+                showStatus(
+                    `<b>✅ ${data.message}</b><br>` +
+                    `Khoảng cách: <b>${data.distance_meters}m</b><br>` +
+                    `Độ chính xác GPS: ${accuracyMeters}<br>` +
+                    photoNote +
+                    (data.record_id ? `Mã bản ghi: #${data.record_id}<br>` : "") +
+                    `<a class="map-link" href="${mapsUrl}" target="_blank" rel="noopener noreferrer">🗺️ Xem vị trí của bạn trên bản đồ</a>`,
+                    true
+                );
+            } else {
+                const errMsg = data.message || data.error || "Điểm danh không thành công.";
+                const distStr = data.distance_meters != null ? `${data.distance_meters}m` : "N/A";
+                showStatus(
+                    `<b>❌ ${errMsg}</b><br>` +
+                    `Khoảng cách đo được: ${distStr}<br>` +
+                    `Độ chính xác GPS: ${accuracyMeters}<br>` +
+                    photoNote +
+                    `<a class="map-link" href="${mapsUrl}" target="_blank" rel="noopener noreferrer">🗺️ Xem vị trí của bạn trên bản đồ</a>`,
+                    false
+                );
             }
-        },
-        (err) => {
+        } catch (err) {
+            showStatus("Lỗi kết nối máy chủ: " + err.message, false);
+        } finally {
             btn.disabled = false;
             btn.innerText = "📍 BẮT ĐẦU ĐIỂM DANH GPS";
-            let msg = "Lỗi GPS: ";
-            if (err.code === 1) {
-                msg += "Bạn đã từ chối cấp quyền truy cập vị trí trên trình duyệt. Vui lòng bật định vị GPS để điểm danh.";
-            } else if (err.code === 2) {
-                msg += "Không nhận được tín hiệu GPS từ thiết bị.";
-            } else {
-                msg += "Hết thời gian chờ phản hồi GPS.";
+        }
+    };
+
+    if (isMockMode) {
+        btn.innerText = "🧪 Đang test điểm danh khớp mốc...";
+        {% localize off %}
+        sendStudentData({
+            coords: {
+                latitude: {{ target_latitude|default:"21.004900" }},
+                longitude: {{ target_longitude|default:"105.843300" }},
+                accuracy: 5.0
             }
-            showStatus(msg, false);
+        });
+        {% endlocalize %}
+        return;
+    }
+
+    if (!navigator.geolocation) {
+        showStatus("Trình duyệt không hỗ trợ Geolocation (định vị GPS). Vui lòng thử trên Chrome hoặc Safari.", false);
+        btn.disabled = false;
+        return;
+    }
+
+    btn.innerText = "⏳ Đang dò sóng GPS...";
+
+    // Lần 1: High accuracy GPS
+    navigator.geolocation.getCurrentPosition(
+        sendStudentData,
+        (errHigh) => {
+            console.warn("High accuracy GPS failed, falling back to standard accuracy...", errHigh);
+            btn.innerText = "⏳ Đang thử lại với độ chính xác chuẩn...";
+            // Lần 2: Fallback Standard accuracy
+            navigator.geolocation.getCurrentPosition(
+                sendStudentData,
+                (errLow) => {
+                    btn.disabled = false;
+                    btn.innerText = "📍 BẮT ĐẦU ĐIỂM DANH GPS";
+                    let msg = "Lỗi GPS: ";
+                    if (errLow.code === 1) {
+                        msg += "Bạn đã từ chối cấp quyền truy cập vị trí. Vui lòng cấp quyền định vị trong trình duyệt để điểm danh.";
+                    } else if (errLow.code === 2) {
+                        msg += "Không nhận được tín hiệu GPS từ thiết bị.";
+                    } else {
+                        msg += "Hết thời gian chờ phản hồi GPS. Vui lòng thử lại.";
+                    }
+                    showStatus(msg, false);
+                },
+                { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+            );
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
     );
 }
 
