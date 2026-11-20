@@ -30,6 +30,7 @@
             </button>
         </form>
 
+        {% if enable_dev_switcher and test_accounts %}
         <!-- QUICK TEST ROLES (DEV FEATURE) -->
         <div class="mt-8 pt-6 border-t border-slate-100">
             <div class="text-center mb-3">
@@ -57,6 +58,7 @@
                 {% endfor %}
             </div>
         </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
