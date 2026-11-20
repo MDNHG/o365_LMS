@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django import forms
+from django.conf import settings
 
 User = get_user_model()
 
@@ -49,13 +50,15 @@ def login_view(request):
     else:
         form = LoginForm()
 
-    # Lấy danh sách tài khoản mẫu để hiển thị nút đăng nhập nhanh (Quick Test)
-    test_accounts = [
-        {'role': 'Giảng viên Word', 'username': 'teacher_word', 'desc': 'Quản lý khóa Word'},
-        {'role': 'Giảng viên Excel', 'username': 'teacher_excel', 'desc': 'Quản lý khóa Excel'},
-        {'role': 'Học viên', 'username': 'sv001', 'desc': 'MSSV: 20210001'},
-        {'role': 'Ban tổ chức (Admin)', 'username': 'admin', 'desc': 'Toàn quyền hệ thống'},
-    ]
+    # Chỉ hiển thị danh sách tài khoản mẫu khi bật cờ DEV MODE
+    test_accounts = []
+    if getattr(settings, 'ENABLE_DEV_SWITCHER', False):
+        test_accounts = [
+            {'role': 'Giảng viên Word', 'username': 'teacher_word', 'desc': 'Quản lý khóa Word'},
+            {'role': 'Giảng viên Excel', 'username': 'teacher_excel', 'desc': 'Quản lý khóa Excel'},
+            {'role': 'Học viên', 'username': 'sv001', 'desc': 'MSSV: 20210001'},
+            {'role': 'Ban tổ chức (Admin)', 'username': 'admin', 'desc': 'Toàn quyền hệ thống'},
+        ]
 
     return render(request, 'accounts/login.html', {
         'form': form,
@@ -70,7 +73,11 @@ def logout_view(request):
 
 
 def quick_switch_user(request, username):
-    """Tính năng hỗ trợ DEV/Testing: Đăng nhập nhanh 1-chạm không cần gõ mật khẩu"""
+    """Tính năng hỗ trợ DEV/Testing: Đăng nhập nhanh 1-chạm không cần gõ mật khẩu (Bị chặn trên Production)"""
+    if not getattr(settings, 'ENABLE_DEV_SWITCHER', False):
+        messages.error(request, "Chức năng đăng nhập nhanh đã bị vô hiệu hóa vì lý do bảo mật. Vui lòng đăng nhập bằng mật khẩu.")
+        return redirect('accounts:login')
+
     target_user = User.objects.filter(username=username).first()
     if target_user:
         login(request, target_user)

@@ -32,6 +32,28 @@ if allowed_hosts_str:
 else:
     ALLOWED_HOSTS = ['*'] if DEBUG else ['localhost', '127.0.0.1']
 
+# CSRF Trusted Origins for HTTPS development / tunnels (Cloudflare, ngrok, local SSL)
+csrf_trusted_str = os.getenv('DJANGO_CSRF_TRUSTED_ORIGINS')
+if csrf_trusted_str:
+    CSRF_TRUSTED_ORIGINS = [h.strip() for h in csrf_trusted_str.split(',') if h.strip()]
+elif DEBUG:
+    CSRF_TRUSTED_ORIGINS = [
+        'https://*.trycloudflare.com',
+        'https://*.ngrok-free.app',
+        'https://*.loca.lt',
+        'https://127.0.0.1:8000',
+        'https://localhost:8000',
+        'http://127.0.0.1:8000',
+        'http://localhost:8000',
+    ]
+
+# Dev mode role switcher (disabled in production by default)
+enable_dev_str = os.getenv('ENABLE_DEV_SWITCHER')
+if enable_dev_str is not None:
+    ENABLE_DEV_SWITCHER = enable_dev_str.lower() in ('true', '1')
+else:
+    ENABLE_DEV_SWITCHER = True if DEBUG else False
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -74,6 +96,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.accounts.context_processors.dev_mode',
             ],
         },
     },
@@ -102,6 +125,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
