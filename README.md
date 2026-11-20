@@ -15,6 +15,7 @@ Hệ thống quản lý học tập (LMS) tinh gọn, chuyên dụng phục vụ
 - **Giao diện học tập hiện đại:** Tương thích di động (Mobile responsive), tích hợp dự phòng mở tài liệu tab mới nếu bị chặn cookie.
 - **Tiện ích Kiểm thử nhanh (DEV Role Switcher):** Thanh công cụ 1-chạm giúp chuyển đổi tức thì giữa các tài khoản mẫu (`teacher_word`, `teacher_excel`, `sv001`, `admin`) mà không cần đăng nhập lại.
 - **Điểm danh Sự kiện & Check-in GPS:** Giao diện xác thực vị trí học viên bằng Geolocation API, tính toán khoảng cách tự động theo bán kính so với tọa độ mốc.
+- **Cơ chế phát hiện giao lận Video Tracking:** Kết hợp YouTube IFrame API ở Frontend và Anti-Cheat Validation Engine ở Backend Django, gồm 7 tiêu chí sau: chống tua vượt, chống spam Heartbeat, chống treo máy, giám sát ẩn tab, khóa tốc độ phát, chống trùng lặp, nhật kí dòng thời gian.
 
 ---
 
